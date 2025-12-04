@@ -1,4 +1,5 @@
 const PracticeProblem = require('../models/PracticeProblem');
+const { validateProblemPayload, isAllowedReturnType } = require('../utils/validator');
 const fs = require('fs');
 const path = require('path');
 
@@ -37,6 +38,15 @@ async function uploadPracticeProblems(jsonFilePath) {
           continue;
         }
 
+        // Strict validation
+        if (!problemData.functionSignature || !isAllowedReturnType(problemData.functionSignature.returnType)) {
+          throw new Error(`Invalid returnType '${problemData.functionSignature?.returnType}'. Use explicit tokens like int[], string[], boolean[].`);
+        }
+        const { errors } = validateProblemPayload(problemData);
+        if (errors.length) {
+          throw new Error(errors.map(e => `${e.field}: ${e.message}`).join('; '));
+        }
+
         // Create new problem
         const newProblem = new PracticeProblem({
           title: problemData.title,
@@ -44,7 +54,7 @@ async function uploadPracticeProblems(jsonFilePath) {
           topic: problemData.topic,
           description: problemData.description,
           codeTemplate: problemData.codeTemplate || {},
-          functionSignature: problemData.functionSignature || { name: 'solution', params: [], returnType: 'any' },
+          functionSignature: problemData.functionSignature,
           testCases: problemData.testCases || [],
           constraints: problemData.constraints || [],
           hints: problemData.hints || [],
@@ -111,13 +121,22 @@ const bulkUploadProblems = async (req, res) => {
           continue;
         }
 
+        // Strict validation
+        if (!problemData.functionSignature || !isAllowedReturnType(problemData.functionSignature.returnType)) {
+          throw new Error(`Invalid returnType '${problemData.functionSignature?.returnType}'. Use explicit tokens like int[], string[], boolean[].`);
+        }
+        const v = validateProblemPayload(problemData);
+        if (v.errors.length) {
+          throw new Error(v.errors.map(e => `${e.field}: ${e.message}`).join('; '));
+        }
+
         const newProblem = new PracticeProblem({
           title: problemData.title,
           difficulty: problemData.difficulty,
           topic: problemData.topic,
           description: problemData.description,
           codeTemplate: problemData.codeTemplate || {},
-          functionSignature: problemData.functionSignature || { name: 'solution', params: [], returnType: 'any' },
+          functionSignature: problemData.functionSignature,
           testCases: problemData.testCases || [],
           constraints: problemData.constraints || [],
           hints: problemData.hints || [],

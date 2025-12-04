@@ -12,6 +12,9 @@ import PrivateRoute from "./components/PrivateRoute";
 import ChatPage from "./components/pages/ChatPage";
 import LearnHubMainPage from './components/pages/LearnHubMainPage';
 import AskAIDoubts from './components/pages/AskAIDoubts';
+import AICodingAssistant from './components/pages/AICodingAssistant';
+
+import ProjectHome from "./components/pages/ProjectHome";
 
 // Practice Components
 import PracticeSelection from './components/practiceWithAI/PracticeSelection';
@@ -47,6 +50,7 @@ import NewDiscussionPage from './components/NewDiscussionPage';
 import DiscussionDetailPage from './components/DiscussionDetailPage';
 import ProfilePage from './components/pages/ProfilePage';
 import SettingsPage from './components/pages/SettingsPage';
+import AboutPage from './components/pages/AboutPage';
 
 // Styles
 import './index.css';
@@ -88,7 +92,7 @@ function App() {
         setMessages(JSON.parse(savedMessages));
       } else {
         // Optional: Set an initial message if no history exists
-        setMessages([{ role: "ai", content: "This is an AI Code Explainer. Please enter code to get an explanation." }]);
+        setMessages([{ role: "ai", content: "This is AI Coding Assistance . Please enter code to get an explanation." }]);
       }
     } else {
       // Clear messages if user logs out
@@ -154,6 +158,7 @@ function App() {
           <Navbar isDark={isDark} toggleDarkMode={toggleDarkMode} />
           <main>
             <Routes>
+              <Route path="/new-home" element={<ProjectHome />} />
               <Route path="/login" element={<Login />} />
               <Route path="/signup" element={<Signup />} />
               <Route path="/forgot-password" element={<ForgotPassword />} />
@@ -237,6 +242,14 @@ function App() {
                 element={
                   <PrivateRoute>
                     <AskAIDoubts isDark={isDark} />
+                  </PrivateRoute>
+                }
+              />
+              <Route 
+                path="/assistant" 
+                element={
+                  <PrivateRoute>
+                    <AICodingAssistant />
                   </PrivateRoute>
                 }
               />
@@ -367,6 +380,14 @@ function App() {
                 element={
                   <PrivateRoute>
                     <SettingsPage isDark={isDark} />
+                  </PrivateRoute>
+                } 
+              />
+              <Route 
+                path="/about" 
+                element={
+                  <PrivateRoute>
+                    <AboutPage isDark={isDark} />
                   </PrivateRoute>
                 } 
               />

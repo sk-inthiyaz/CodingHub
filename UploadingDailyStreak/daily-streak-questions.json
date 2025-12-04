@@ -1,0 +1,195 @@
+{
+  "date": "2025-11-15",
+  "questions": [
+    {
+      "title": "Count Words With Special Separator",
+      "description": "You are given a sentence s that may contain alphabets, digits, and special characters, including multiple separators such as spaces, periods (.), commas (,), hyphens (-), and slashes (/). Your task is to count how many valid English words exist in the sentence. A valid word contains only lowercase English letters. Consecutive separators should not incorrectly create empty 'words'.\n\nExample: 'hello-world/ai' contains 2 valid words: 'hello' and 'ai'.\nWords like 'abc123', '9live', 'dog!' are invalid because they contain non-letter characters.",
+      "constraints": "1 <= s.length <= 200000\nString may contain: [a-z], digits, spaces, '.', ',', '-', '/', '!'.",
+      "hints": [
+        "Split using all special chars: use regex or manual scan",
+        "Check each token contains only letters",
+        "Ignore empty tokens"
+      ],
+      "difficulty": "Easy",
+      "level": 1,
+      "functionSignature": {
+        "name": "countValidWords",
+        "params": ["s"],
+        "returnType": "int"
+      },
+      "testCases": [
+        {
+          "input": "hello-world/ai",
+          "expectedOutput": "2",
+          "explanation": "hello, ai",
+          "isHidden": false
+        },
+        {
+          "input": "apple,banana.orange--grape",
+          "expectedOutput": "4",
+          "explanation": "all words valid",
+          "isHidden": false
+        },
+        {
+          "input": "cat99 dog! fish",
+          "expectedOutput": "1",
+          "explanation": "only 'fish' is valid",
+          "isHidden": true
+        }
+      ],
+      "activeDate": "2025-11-17",
+      "expirationDate": "2025-11-17"
+    },
+    {
+      "title": "Find Longest Consecutive Increasing Subarray",
+      "description": "Given an array of integers arr, find the length of the longest strictly increasing continuous subarray. A continuous subarray means the elements appear consecutively in the array without skipping.\n\nExample: In [3, 4, 5, 1, 2, 3, 10], the longest increasing continuous subarray is [1, 2, 3, 10] with length 4.\nThis problem is good for testing scanning logic, edge cases, and large input performance.",
+      "constraints": "1 <= arr.length <= 200000\n-10^9 <= arr[i] <= 10^9",
+      "hints": [
+        "Use a sliding window or one-pass scan",
+        "Reset counter when sequence breaks",
+        "Track maximum found so far"
+      ],
+      "difficulty": "Mid",
+      "level": 2,
+      "functionSignature": {
+        "name": "longestIncreasingContinuous",
+        "params": ["arr"],
+        "returnType": "int"
+      },
+      "testCases": [
+        {
+          "input": "[3,4,5,1,2,3,10]",
+          "expectedOutput": "4",
+          "explanation": "1,2,3,10",
+          "isHidden": false
+        },
+        {
+          "input": "[10,9,8,7]",
+          "expectedOutput": "1",
+          "explanation": "no increasing sequence",
+          "isHidden": false
+        },
+        {
+          "input": "[1,2,3,4,5]",
+          "expectedOutput": "5",
+          "isHidden": true
+        }
+      ],
+      "activeDate": "2025-11-17",
+      "expirationDate": "2025-11-17"
+    },
+    {
+      "title": "Remove Adjacent Duplicates Repeatedly",
+      "description": "Given a string s, remove all adjacent duplicate characters repeatedly until no more duplicates remain. This problem tests stack/string-manipulation and is large enough to stress parsing logic.\n\nExample: 'abbaca' → remove 'bb' → 'aaca' → remove 'aa' → 'ca'.",
+      "constraints": "1 <= s.length <= 200000\nContains lowercase English letters only.",
+      "hints": [
+        "Use stack-like logic",
+        "Process characters one by one",
+        "Pop when top equals current character"
+      ],
+      "difficulty": "Mid-Easy",
+      "level": 3,
+      "functionSignature": {
+        "name": "removeDuplicatesRepeatedly",
+        "params": ["s"],
+        "returnType": "string"
+      },
+      "testCases": [
+        {
+          "input": "abbaca",
+          "expectedOutput": "ca",
+          "explanation": "abbaca → aaca → ca",
+          "isHidden": false
+        },
+        {
+          "input": "azxxzy",
+          "expectedOutput": "ay",
+          "explanation": "remove xx and zz",
+          "isHidden": false
+        },
+        {
+          "input": "aaaa",
+          "expectedOutput": "",
+          "isHidden": true
+        }
+      ],
+      "activeDate": "2025-11-17",
+      "expirationDate": "2025-11-17"
+    },
+    {
+      "title": "Longest Balanced Binary Substring",
+      "description": "You are given a binary string s of '0' and '1'. A balanced substring is one where the number of 0s equals the number of 1s AND all 0s come before all 1s.\n\nExample: In '00111011', the substring '0011' is balanced (two 0s, two 1s). Find the maximum length among all such substrings.\nThis problem stresses string scanning, counts, and boundary logic.",
+      "constraints": "1 <= s.length <= 200000\nString contains only '0' and '1'.",
+      "hints": [
+        "Count consecutive 0s and next consecutive 1s",
+        "Balanced substring length = 2 * min(count0, count1)",
+        "Track maximum across positions"
+      ],
+      "difficulty": "Hard",
+      "level": 4,
+      "functionSignature": {
+        "name": "longestBalancedSubstring",
+        "params": ["s"],
+        "returnType": "int"
+      },
+      "testCases": [
+        {
+          "input": "00111011",
+          "expectedOutput": "4",
+          "explanation": "0011 is length 4",
+          "isHidden": false
+        },
+        {
+          "input": "000111",
+          "expectedOutput": "6",
+          "isHidden": false
+        },
+        {
+          "input": "010101",
+          "expectedOutput": "2",
+          "isHidden": true
+        }
+      ],
+      "activeDate": "2025-11-17",
+      "expirationDate": "2025-11-17"
+    },
+    {
+      "title": "Sum of Subarray Minimums",
+      "description": "You are given an array arr. For every possible contiguous subarray, find the minimum element. Return the sum of all these minimums.\n\nExample: For arr = [3,1,2,4], all subarrays and their minimums are: [3]=3, [3,1]=1, [3,1,2]=1, [3,1,2,4]=1, [1]=1, [1,2]=1, [1,2,4]=1, [2]=2, [2,4]=2, [4]=4 → sum = 17.\nThis is a large monotonic-stack problem that fully tests performance and backend parsing.",
+      "constraints": "1 <= arr.length <= 100000\n1 <= arr[i] <= 10^9",
+      "hints": [
+        "Use monotonic stack",
+        "Compute contribution of each element",
+        "Avoid brute force O(n^2)"
+      ],
+      "difficulty": "Mix",
+      "level": 5,
+      "functionSignature": {
+        "name": "sumOfSubarrayMinimums",
+        "params": ["arr"],
+        "returnType": "int"
+      },
+      "testCases": [
+        {
+          "input": "[3,1,2,4]",
+          "expectedOutput": "17",
+          "explanation": "sum of all subarray minimums",
+          "isHidden": false
+        },
+        {
+          "input": "[11,81,94,43,3]",
+          "expectedOutput": "444",
+          "explanation": "known example",
+          "isHidden": false
+        },
+        {
+          "input": "[5,5,5]",
+          "expectedOutput": "15",
+          "isHidden": true
+        }
+      ],
+      "activeDate": "2025-11-17",
+      "expirationDate": "2025-11-17"
+    }
+  ]
+}

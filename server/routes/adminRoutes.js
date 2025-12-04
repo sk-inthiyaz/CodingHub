@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { addQuestion, getQuestions, deleteQuestion } = require('../controllers/adminController');
+const { addQuestion, getQuestions, deleteQuestion, bulkUploadStreakQuestions } = require('../controllers/adminController');
 const { 
 	bulkUploadProblems, 
 	deleteAllProblems, 
@@ -8,13 +8,20 @@ const {
 } = require('../controllers/practiceAdminController');
 const { auth, isAdmin } = require('../middleware/auth');
 
-// Add new question
+// ===============================
+// STREAK QUESTIONS ADMIN ROUTES
+// ===============================
+
+// Add new streak question
 router.post('/add-question', addQuestion);
 
-// Fetch all questions
+// Bulk upload streak questions
+router.post('/streak/bulk-upload', auth, isAdmin, bulkUploadStreakQuestions);
+
+// Fetch all streak questions
 router.get('/get-questions', getQuestions);
 
-// Delete a question
+// Delete a streak question
 router.delete('/delete-question/:id', deleteQuestion);
 
 // ===============================

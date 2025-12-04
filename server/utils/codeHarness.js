@@ -12,22 +12,25 @@
  * @param {object} questionMetadata - { functionSignature: { name, params, returnType }, ... }
  * @returns {string} Complete runnable code
  */
+const { mapReturnType } = require('./validator');
+
 function wrapCodeWithHarness(userCode, language, testCase, questionMetadata = {}) {
   // Extract function info from question metadata or fallback to testCase
   const funcSig = questionMetadata?.functionSignature || { name: 'solution', params: [] };
   const functionName = funcSig.name || 'solution';
   const paramCount = (funcSig.params || []).length || 1;
   const input = testCase.input || '';
+  const returnTypeToken = funcSig.returnType || 'int';
   
   switch (language) {
     case 'javascript':
-      return wrapJavaScript(userCode, functionName, paramCount, input);
+      return wrapJavaScript(userCode, functionName, paramCount, input, returnTypeToken);
     case 'python':
-      return wrapPython(userCode, functionName, paramCount, input);
+      return wrapPython(userCode, functionName, paramCount, input, returnTypeToken);
     case 'java':
-      return wrapJava(userCode, functionName, paramCount, input);
+      return wrapJava(userCode, functionName, paramCount, input, returnTypeToken);
     case 'cpp':
-      return wrapCpp(userCode, functionName, paramCount, input);
+      return wrapCpp(userCode, functionName, paramCount, input, returnTypeToken);
     default:
       return userCode;
   }
@@ -112,7 +115,7 @@ function splitSmartComma(str, expectedParts) {
   return parts;
 }
 
-function wrapJavaScript(userCode, functionName, paramCount, input) {
+function wrapJavaScript(userCode, functionName, paramCount, input, returnTypeToken) {
   const callsViaSolution = /class\s+Solution/.test(userCode);
   const params = parseInputLines(input, paramCount);
   
@@ -159,12 +162,17 @@ ${paramsCode}
 // Call user function
 ${callCode}
 
-// Print result as JSON
-console.log(JSON.stringify(result));
+// Print result
+if ("string" === ${JSON.stringify(returnTypeToken)}) {
+  // For string return, print raw (including empty string)
+  process.stdout.write(String(result));
+} else {
+  console.log(JSON.stringify(result));
+}
 `;
 }
 
-function wrapPython(userCode, functionName, paramCount, input) {
+function wrapPython(userCode, functionName, paramCount, input, returnTypeToken) {
   const callsViaSolution = /class\s+Solution/.test(userCode);
   
   let paramsCode = '';
@@ -240,11 +248,15 @@ ${paramsCode}
 
 ${callCode}
 
-print(json.dumps(result, separators=(',',':')))
+if (${JSON.stringify(returnTypeToken)} == 'string'):
+  # For string return, print raw (no quotes)
+  sys.stdout.write(str(result))
+else:
+  print(json.dumps(result, separators=(',',':')))
 `;
 }
 
-function wrapJava(userCode, functionName, paramCount, input) {
+function wrapJava(userCode, functionName, paramCount, input, returnTypeToken) {
   // Extract param types from metadata if available
   const funcSig = userCode.match(/public\s+\w+\s+\w+\((.*?)\)/)?.[1] || '';
   const paramDeclarations = funcSig.split(',').map(p => p.trim());
@@ -262,12 +274,7 @@ function wrapJava(userCode, functionName, paramCount, input) {
     return 'int[]'; // Default fallback
   };
   
-  console.log('[wrapJava] Debug:', {
-    functionName,
-    paramCount,
-    funcSig,
-    paramDeclarations
-  });
+  // console debug removed in production
   
   if (paramCount === 1) {
     const paramType = getParamType(0);
@@ -275,18 +282,22 @@ function wrapJava(userCode, functionName, paramCount, input) {
     const defaultVal = paramType.includes('[]') ? '[]' : (paramType === 'String' ? '' : '0');
     readCode = 'String line1 = br.readLine();\n    if (line1 == null) line1 = "' + defaultVal + '";';
     
-    // Detect return type from function signature
-    const returnTypeMatch = userCode.match(/public\s+(\w+)\s+\w+\(/);
-    const returnType = returnTypeMatch ? returnTypeMatch[1] : 'int';
+    const returnType = mapReturnType('java', returnTypeToken) || 'int';
     
     if (paramType.includes('[]')) {
       paramsCode = 'int[] param1 = parseIntArray(line1);';
       if (returnType === 'boolean' || returnType === 'bool') {
-        callCode = 'boolean result = new Solution().' + functionName + '(param1);\n    System.out.println(result);';
+        callCode = 'var result = new Solution().' + functionName + '(param1);\n    System.out.println(result);';
       } else if (returnType.includes('[]')) {
-        callCode = 'int[] result = new Solution().' + functionName + '(param1);\n    printIntArray(result);';
+        if (returnTypeToken === 'string[]') {
+          callCode = 'var result = new Solution().' + functionName + '(param1);\n    printStringArray(result);';
+        } else if (returnTypeToken === 'boolean[]') {
+          callCode = 'var result = new Solution().' + functionName + '(param1);\n    printBoolArray(result);';
+        } else {
+          callCode = 'var result = new Solution().' + functionName + '(param1);\n    printIntArray(result);';
+        }
       } else {
-        callCode = 'int result = new Solution().' + functionName + '(param1);\n    System.out.println(result);';
+        callCode = 'var result = new Solution().' + functionName + '(param1);\n    System.out.println(result);';
       }
     } else if (paramType === 'int') {
       paramsCode = 'int param1 = Integer.parseInt(line1.trim());';
@@ -295,16 +306,16 @@ function wrapJava(userCode, functionName, paramCount, input) {
       // String parameter - no need to remove quotes, input is plain string
       paramsCode = 'String param1 = line1;';
       if (returnType === 'boolean' || returnType === 'bool') {
-        callCode = 'boolean result = new Solution().' + functionName + '(param1);\n    System.out.println(result);';
+        callCode = 'var result = new Solution().' + functionName + '(param1);\n    System.out.println(result);';
       } else if (returnType === 'String') {
-        callCode = 'String result = new Solution().' + functionName + '(param1);\n    System.out.println(result);';
+        callCode = 'var result = new Solution().' + functionName + '(param1);\n    System.out.println(result);';
       } else {
-        callCode = 'int result = new Solution().' + functionName + '(param1);\n    System.out.println(result);';
+        callCode = 'var result = new Solution().' + functionName + '(param1);\n    System.out.println(result);';
       }
 
     } else {
       paramsCode = 'String param1 = line1;';
-      callCode = 'Object result = new Solution().' + functionName + '(param1);\n    System.out.println(result);';
+        callCode = 'var result = new Solution().' + functionName + '(param1);\n    System.out.println(result);';
     }
   } else if (paramCount === 2) {
     const param1Type = getParamType(0);
@@ -317,24 +328,24 @@ function wrapJava(userCode, functionName, paramCount, input) {
     
     if (param1Type.includes('[]') && param2Type === 'int') {
       paramsCode = 'int[] param1 = parseIntArray(line1);\n    int param2 = Integer.parseInt(line2.trim());';
-      callCode = 'int[] result = new Solution().' + functionName + '(param1, param2);\n    printIntArray(result);';
+      callCode = 'var result = new Solution().' + functionName + '(param1, param2);\n    printIntArray(result);';
     } else if (param1Type.includes('[][]') && param2Type === 'String') {
       paramsCode = 'char[][] param1 = parseCharArray(line1);\n    String param2 = line2;';
-      callCode = 'boolean result = new Solution().' + functionName + '(param1, param2);\n    System.out.println(result);';
+      callCode = 'var result = new Solution().' + functionName + '(param1, param2);\n    System.out.println(result);';
     } else {
       // Fallback for twoSum (2 int[] params)
       paramsCode = 'int[] param1 = parseIntArray(line1);\n    int param2 = Integer.parseInt(line2.trim());';
-      callCode = 'int[] result = new Solution().' + functionName + '(param1, param2);\n    printIntArray(result);';
+      callCode = 'var result = new Solution().' + functionName + '(param1, param2);\n    printIntArray(result);';
     }
   } else if (paramCount === 3) {
     readCode = 'String line1 = br.readLine();\n    String line2 = br.readLine();\n    String line3 = br.readLine();\n    if (line1 == null) line1 = "[]";\n    if (line2 == null) line2 = "0";\n    if (line3 == null) line3 = "0";';
     paramsCode = 'int[] param1 = parseIntArray(line1);\n    int param2 = Integer.parseInt(line2.trim());\n    int param3 = Integer.parseInt(line3.trim());';
-    callCode = 'int result = new Solution().' + functionName + '(param1, param2, param3);\n    System.out.println(result);';
+    callCode = 'var result = new Solution().' + functionName + '(param1, param2, param3);\n    System.out.println(result);';
   } else {
     // Fallback for twoSum (2 params)
     readCode = 'String line1 = br.readLine();\n    String line2 = br.readLine();\n    if (line1 == null) line1 = "[]";\n    if (line2 == null) line2 = "0";';
     paramsCode = 'int[] param1 = parseIntArray(line1);\n    int param2 = Integer.parseInt(line2.trim());';
-    callCode = 'int[] result = new Solution().' + functionName + '(param1, param2);\n    printIntArray(result);';
+    callCode = 'var result = new Solution().' + functionName + '(param1, param2);\n    printIntArray(result);';
   }
 
   // Extract Solution class if it exists, otherwise use userCode as-is
@@ -350,13 +361,15 @@ function wrapJava(userCode, functionName, paramCount, input) {
   const parseIntArrayCode = 'static int[] parseIntArray(String s) {\n    StringBuilder sb = new StringBuilder();\n    for (char c : s.toCharArray()) {\n      if (c != \'[\' && c != \']\') sb.append(c);\n    }\n    String numsStr = sb.toString();\n    if (numsStr.isEmpty()) return new int[0];\n    String[] numStrs = numsStr.split(",");\n    int[] nums = new int[numStrs.length];\n    for (int i = 0; i < numStrs.length; i++) {\n      if (!numStrs[i].trim().isEmpty()) {\n        nums[i] = Integer.parseInt(numStrs[i].trim());\n      }\n    }\n    return nums;\n  }';
 
   const printIntArrayCode = 'static void printIntArray(int[] arr) {\n    System.out.print("[");\n    for (int i = 0; i < arr.length; i++) {\n      System.out.print(arr[i]);\n      if (i < arr.length - 1) System.out.print(",");\n    }\n    System.out.println("]");\n  }';
+  const printStringArrayCode = 'static void printStringArray(String[] arr) {\n    System.out.print("[");\n    for (int i = 0; i < arr.length; i++) {\n      System.out.print(arr[i] == null ? "null" : arr[i]);\n      if (i < arr.length - 1) System.out.print(",");\n    }\n    System.out.println("]");\n  }';
+  const printBoolArrayCode = 'static void printBoolArray(boolean[] arr) {\n    System.out.print("[");\n    for (int i = 0; i < arr.length; i++) {\n      System.out.print(arr[i] ? "true" : "false");\n      if (i < arr.length - 1) System.out.print(",");\n    }\n    System.out.println("]");\n  }';
 
   const parseCharArrayCode = 'static char[][] parseCharArray(String s) {\n    java.util.List<String> rows = new java.util.ArrayList<>();\n    StringBuilder current = new StringBuilder();\n    for (char c : s.toCharArray()) {\n      if (c == \',\') {\n        rows.add(current.toString());\n        current = new StringBuilder();\n      } else if (c != \'[\' && c != \']\') {\n        current.append(c);\n      }\n    }\n    if (current.length() > 0) rows.add(current.toString());\n    char[][] result = new char[rows.size()][];\n    for (int i = 0; i < rows.size(); i++) {\n      String row = rows.get(i).trim();\n      result[i] = new char[row.length()];\n      for (int j = 0; j < row.length(); j++) {\n        result[i][j] = row.charAt(j);\n      }\n    }\n    return result;\n  }';
 
-  return 'import java.util.*;\nimport java.io.*;\n\n' + solutionCode + '\n\npublic class Main {\n  ' + parseIntArrayCode + '\n\n  ' + printIntArrayCode + '\n\n  ' + parseCharArrayCode + '\n\n  public static void main(String[] args) throws Exception {\n    BufferedReader br = new BufferedReader(new InputStreamReader(System.in));\n    ' + readCode + '\n\n    ' + paramsCode + '\n    \n    ' + callCode + '\n  }\n}\n';
+  return 'import java.util.*;\nimport java.io.*;\n\n' + solutionCode + '\n\npublic class Main {\n  ' + parseIntArrayCode + '\n\n  ' + printIntArrayCode + '\n\n  ' + printStringArrayCode + '\n\n  ' + printBoolArrayCode + '\n\n  ' + parseCharArrayCode + '\n\n  public static void main(String[] args) throws Exception {\n    BufferedReader br = new BufferedReader(new InputStreamReader(System.in));\n    ' + readCode + '\n\n    ' + paramsCode + '\n    \n    ' + callCode + '\n  }\n}\n';
 }
 
-function wrapCpp(userCode, functionName, paramCount, input) {
+function wrapCpp(userCode, functionName, paramCount, input, returnTypeToken) {
   // Extract function signature to detect return and param types
   const funcSigMatch = userCode.match(/(\w+)\s+(\w+)\((.*?)\)/);
   const returnType = funcSigMatch ? funcSigMatch[1] : 'int';
@@ -374,30 +387,20 @@ function wrapCpp(userCode, functionName, paramCount, input) {
       readCode = 'string line;\n  if (!getline(cin, line)) line = "";';
       paramsCode = 'string param1 = line;';
       
-      if (returnType === 'bool') {
-        callCode = 'Solution sol;\n  bool result = sol.' + functionName + '(param1);\n  cout << (result ? "true" : "false") << endl;';
-      } else if (returnType === 'string' || returnType === 'String') {
-        callCode = 'Solution sol;\n  string result = sol.' + functionName + '(param1);\n  cout << result << endl;';
-      } else {
-        callCode = 'Solution sol;\n  int result = sol.' + functionName + '(param1);\n  cout << result << endl;';
-      }
+      callCode = 'Solution sol;\n  auto result = sol.' + functionName + '(param1);\n  cout << result << endl;';
     } else {
       // Handle vector/array parameter
       readCode = 'string line;\n  if (!getline(cin, line)) line = "[]";\n  vector<int> param1;\n  if (line.size() >= 2) {\n    string inner = line.substr(1, line.size() - 2);\n    if (!inner.empty()) {\n      stringstream ss(inner);\n      string token;\n      while (getline(ss, token, \',\')) {\n        if (!token.empty()) param1.push_back(stoi(token));\n      }\n    }\n  }';
       
-      if (returnType === 'bool') {
-        callCode = 'Solution sol;\n  bool result = sol.' + functionName + '(param1);\n  cout << (result ? "true" : "false") << endl;';
-      } else {
-        callCode = 'Solution sol;\n  int result = sol.' + functionName + '(param1);\n  cout << result << endl;';
-      }
+      callCode = 'Solution sol;\n  auto result = sol.' + functionName + '(param1);\n  cout << result << endl;';
     }
   } else if (paramCount === 2) {
     readCode = 'string line;\n  if (!getline(cin, line)) line = "[]";\n  vector<int> param1;\n  if (line.size() >= 2) {\n    string inner = line.substr(1, line.size() - 2);\n    if (!inner.empty()) {\n      stringstream ss(inner);\n      string token;\n      while (getline(ss, token, \',\')) {\n        if (!token.empty()) param1.push_back(stoi(token));\n      }\n    }\n  }\n  \n  if (!getline(cin, line)) line = "0";\n  int param2 = 0;\n  try { param2 = stoi(line); } catch (...) { param2 = 0; }';
-    callCode = 'Solution sol;\n  vector<int> result = sol.' + functionName + '(param1, param2);\n  cout << "[";\n  for (size_t i = 0; i < result.size(); i++) {\n    cout << result[i];\n    if (i < result.size() - 1) cout << ",";\n  }\n  cout << "]" << endl;';
+    callCode = 'Solution sol;\n  auto result = sol.' + functionName + '(param1, param2);\n  cout << "[";\n  for (size_t i = 0; i < result.size(); i++) {\n    cout << result[i];\n    if (i < result.size() - 1) cout << ",";\n  }\n  cout << "]" << endl;';
   } else {
     // Fallback
     readCode = 'string line;\n  if (!getline(cin, line)) line = "[]";\n  vector<int> param1;\n  if (line.size() >= 2) {\n    string inner = line.substr(1, line.size() - 2);\n    if (!inner.empty()) {\n      stringstream ss(inner);\n      string token;\n      while (getline(ss, token, \',\')) {\n        if (!token.empty()) param1.push_back(stoi(token));\n      }\n    }\n  }\n  if (!getline(cin, line)) line = "0";\n  int param2 = 0;\n  try { param2 = stoi(line); } catch (...) { param2 = 0; }';
-    callCode = 'Solution sol;\n  vector<int> result = sol.' + functionName + '(param1, param2);\n  cout << "[";\n  for (size_t i = 0; i < result.size(); i++) {\n    cout << result[i];\n    if (i < result.size() - 1) cout << ",";\n  }\n  cout << "]" << endl;';
+    callCode = 'Solution sol;\n  auto result = sol.' + functionName + '(param1, param2);\n  cout << "[";\n  for (size_t i = 0; i < result.size(); i++) {\n    cout << result[i];\n    if (i < result.size() - 1) cout << ",";\n  }\n  cout << "]" << endl;';
   }
 
   // Extract Solution class if it exists, otherwise use userCode as-is

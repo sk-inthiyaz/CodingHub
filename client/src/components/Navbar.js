@@ -28,6 +28,15 @@ const Navbar = ({ isDark, toggleDarkMode }) => {
     navigate('/LearnHub');
   };
 
+  const handleTitleClick = () => {
+    navigate('/new-home');
+  };
+
+  const handleLogout = () => {
+    logout();
+    navigate('/login');
+  };
+
   return (
     <nav className="navbar-root">
       <div className="navbar-inner">
@@ -37,7 +46,9 @@ const Navbar = ({ isDark, toggleDarkMode }) => {
               <img src={leftArrow} alt="Back" />
             </button>
           )}
-          <span className="navbar-title">Coding Hub</span>
+          <span className="navbar-title" onClick={handleTitleClick} style={{ cursor: 'pointer' }}>
+            Coding Hub
+          </span>
         </div>
         <div className="navbar-right-group">
           {user && (
@@ -49,7 +60,7 @@ const Navbar = ({ isDark, toggleDarkMode }) => {
             </Link>
           )}
           {user && (
-            <button onClick={logout} className="navbar-logout-btn">
+            <button onClick={handleLogout} className="navbar-logout-btn">
               Logout
             </button>
           )}

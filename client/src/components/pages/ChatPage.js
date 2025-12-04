@@ -5,6 +5,7 @@ import "./ChatPage.css";
 import Sidebar from "../Sidebar";
 import { getChatTitle } from "../../utils/chat";
 import LearnHubMainPage from "./LearnHubMainPage"; // 👈 Import LearnHub component
+import { useNavigate } from "react-router-dom";
 
 function ChatPage({ isDark, toggleDarkMode }) {
   const [messages, setMessages] = useState([]);
@@ -16,6 +17,7 @@ function ChatPage({ isDark, toggleDarkMode }) {
   const { user, loading } = useAuth();
   const [chatHistory, setChatHistory] = useState([]);
   const [currentChatId, setCurrentChatId] = useState(null);
+  const navigate = useNavigate();
 
   useEffect(() => {
     const userId = user?._id || user?.userId;
@@ -47,12 +49,12 @@ function ChatPage({ isDark, toggleDarkMode }) {
 
 I can help you with anything coding-related! Just ask me to:
 • Generate code (e.g., "Write a bubble sort algorithm")
+• Explain code
 • Explain code concepts
 • Help with debugging
 • Provide coding best practices
 
-No need to paste code first - just ask me what you need! 💻
-4. Provide best practices
+No need to paste code first — just tell me what you need! 💻
 
 Just ask me anything about coding! 🚀`
       }]);
@@ -127,9 +129,12 @@ Just ask me anything about coding! 🚀`
     if (textareaRef.current) textareaRef.current.focus();
   }, [user]);
 
+  // Mode selection for home assistant (to keep history intact)
+  const [assistantMode, setAssistantMode] = useState('explain'); // 'generate' | 'explain' | 'concepts'
+
   const handleSend = async () => {
     if (!inputCode.trim()) return;
-    const userMsg = { role: "user", content: inputCode };
+    const userMsg = { role: "user", content: inputCode, mode: assistantMode };
     setMessages((prev) => [...prev, userMsg]);
     setInputCode("");
     setIsLoading(true);
@@ -138,8 +143,19 @@ Just ask me anything about coding! 🚀`
       // Check if the input is a code generation request
       const generationKeywords = ['generate', 'write', 'create', 'implement', 'show me', 'give me', 'make'];
       const input = inputCode.toLowerCase();
-      const isGenerationRequest = generationKeywords.some(keyword => input.includes(keyword)) || 
-                                /how to|algorithm|sort|search|function/i.test(input);
+      const inferGenerate = generationKeywords.some(keyword => input.includes(keyword)) || /how to|algorithm|sort|search|function/i.test(input);
+
+      // Shape prompt according to assistantMode
+      const shaped = (() => {
+        if (assistantMode === 'generate' || inferGenerate) {
+          return `Generate complete, runnable code for: ${inputCode}\n- Provide minimal usage example\n- Prefer standard library\n- If algorithmic, include time and space complexity`;
+        }
+        if (assistantMode === 'concepts') {
+          return `Explain the concept clearly:\n- Definition\n- Intuition\n- Simple example (code if relevant)\n- Pitfalls\n- Where used in interviews/projects\nTopic: ${inputCode}`;
+        }
+        // default explain
+        return `Explain this code or request with:\n- What it does\n- Step-by-step explanation\n- Edge cases\n- Time and space complexity\n- Improvements/best practices\nContent:\n${inputCode}`;
+      })();
 
       const res = await fetch("http://localhost:5000/api/explain", {
         method: "POST",
@@ -147,17 +163,14 @@ Just ask me anything about coding! 🚀`
           "Content-Type": "application/json",
           "Accept": "application/json"
         },
-        body: JSON.stringify({ 
-          code: inputCode,
-          type: isGenerationRequest ? 'generate' : 'explain'
-        })
+        body: JSON.stringify({ code: shaped })
       });
 
       if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
       const data = await res.json();
       if (!data.explanation) throw new Error("No explanation received");
 
-      const aiMsg = { role: "ai", content: data.explanation };
+      const aiMsg = { role: "ai", content: data.explanation, mode: assistantMode };
       const newMessages = [...messages, userMsg, aiMsg];
 
       if (currentChatId) {
@@ -186,7 +199,7 @@ Just ask me anything about coding! 🚀`
 
   const handleNewChat = () => {
     setCurrentChatId(null);
-    setMessages([{ role: "ai", content: "This is an AI Code Explainer. Please enter code to get an explanation." }]);
+    setMessages([{ role: "ai", content: "This is AI Coding Assistance. Please enter code to get an explanation." }]);
     setSidebarOpen(false);
   };
 
@@ -202,8 +215,8 @@ Just ask me anything about coding! 🚀`
   };
 
   const handleOpenAbout = () => {
-    alert("AI Code Explainer helps you learn programming by explaining code. Built for students and curious minds!");
     setSidebarOpen(false);
+    navigate("/about");
   };
 
   const handleDeleteChat = async (chatId) => {
@@ -223,7 +236,7 @@ Just ask me anything about coding! 🚀`
 
       if (chatId === currentChatId) {
         setCurrentChatId(null);
-        setMessages([{ role: "ai", content: "This is an AI Code Explainer. Please enter code to get an explanation." }]);
+        setMessages([{ role: "ai", content: "This is AI Coding Assistance . Please enter code to get an explanation." }]);
       }
     } catch (error) {
       console.error('Error deleting chat:', error);
@@ -258,22 +271,35 @@ Just ask me anything about coding! 🚀`
                 <ChatWindow messages={messages} isLoading={isLoading} isDark={isDark} />
               </section>
               <form className="input-box input-box-fixed" onSubmit={e => { e.preventDefault(); handleSend(); }}>
-                <textarea
-                  ref={textareaRef}
-                  className="chatpage-textarea textarea-fixed"
-                  placeholder="Write your code or question here..."
-                  value={inputCode}
-                  onChange={(e) => setInputCode(e.target.value)}
-                  onKeyDown={handleKeyPress}
-                  style={{ fontFamily: "monospace" }}
-                />
-                <button
-                  type="submit"
-                  className="chatpage-sendbtn sendbtn-fixed"
-                  aria-label="Send message"
-                >
-                  Send
-                </button>
+                <div className="input-row black-box">
+                  <textarea
+                    ref={textareaRef}
+                    className="chatpage-textarea textarea-fixed large-textarea"
+                    placeholder={assistantMode==='generate' ? 'Describe the code to generate (e.g., Generate DFS in Java)' : assistantMode==='concepts' ? 'Enter a concept/topic to learn' : 'Paste code or describe what needs explaining'}
+                    value={inputCode}
+                    onChange={(e) => setInputCode(e.target.value)}
+                    onKeyDown={handleKeyPress}
+                    style={{ fontFamily: "monospace" }}
+                  />
+                  <div className="controls-column">
+                    <select 
+                      className="mode-select"
+                      value={assistantMode}
+                      onChange={(e) => setAssistantMode(e.target.value)}
+                    >
+                      <option value="generate">Generate</option>
+                      <option value="explain">Explain</option>
+                      <option value="concepts">Concepts</option>
+                    </select>
+                    <button
+                      type="submit"
+                      className="chatpage-sendbtn sendbtn-fixed large-sendbtn"
+                      aria-label="Send message"
+                    >
+                      Send
+                    </button>
+                  </div>
+                </div>
               </form>
             </div>
             <div className="monitor-stand"></div>

@@ -1,24 +1,19 @@
-/* ChatPage.css - Classic layout with chat-wrapper, chat-box, input-box styles */
-/* ChatPage uses global theme variables defined in theme.css */
-
-body.dark .chatpage-textarea {
-  background: #1E293B;
-  color: #F3F4F6 !important;
-  border-color: rgba(99, 102, 241, 0.3);
-}
+/* ------------------------------------
+   GLOBAL + PAGE WRAPPER
+------------------------------------ */
 
 .chatpage-root {
   background: var(--bg-gradient);
   color: var(--text-color);
   min-height: 100vh;
+  width: 100%;
+  overflow-x: hidden;
 }
 
 .heading-container {
   display: flex;
-  align-items: center;
   justify-content: center;
-  margin-top: 40px;
-  margin-bottom: 20px;
+  margin-top: 20px;
 }
 
 .chatpage-title-fixed {
@@ -26,183 +21,251 @@ body.dark .chatpage-textarea {
   font-weight: 700;
   background: linear-gradient(135deg, var(--accent-color), #818CF8);
   -webkit-background-clip: text;
-  background-clip: text;
   -webkit-text-fill-color: transparent;
   text-align: center;
-  margin-bottom: 24px;
-  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  font-family: 'Inter', sans-serif;
 }
 
-.chat-wrapper-fixed {
-  position: relative;
-  background: var(--chat-bg);
-  backdrop-filter: blur(10px);
-  border-radius: 24px;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
-  border: 1px solid var(--border-color);
-  transition: all 0.3s ease;
-  overflow: hidden;
-  margin: 20px;
-  padding: 20px;
-}
+/* ------------------------------------
+   CHAT WRAPPER (monitor-style box)
+------------------------------------ */
 
-.chat-wrapper-fixed:hover {
-  box-shadow: 0 12px 40px rgba(99, 102, 241, 0.15);
-  transform: translateY(-2px);
-}
-
-.chatpage-textarea {
-  width: 100%;
-  min-height: 60px;
-  padding: 16px;
-  border-radius: 12px;
-  background: #FFFFFF;
-  color: #1F2937 !important;
-  border: 2px solid var(--border-color);
-  font-size: 16px;
-  line-height: 1.5;
-  resize: none;
-  transition: all 0.3s ease;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
-}
-
-.chatpage-textarea:focus {
-  outline: none;
-  border-color: var(--accent-color);
-  box-shadow: 0 4px 20px rgba(99, 102, 241, 0.15);
-}
-
-.textarea-fixed {
-  font-family: 'Inter', system-ui, -apple-system, sans-serif;
-  letter-spacing: -0.011em;
-}
-
-/* --- MONITOR STYLE CHAT BOX --- */
 .chatpage-main {
   display: flex;
   flex-direction: column;
   align-items: center;
-  min-height: 80vh;
   width: 100vw;
-  padding-top: 0px;
-  margin-top: -2px;
 }
 
 .chat-wrapper-fixed {
-  width: 100%;
-  max-width: 820px;
-  margin: 40px auto;
-  background: var(--chat-bg);
-  border: 1.5px solid var(--border-color);
-  border-radius: 18px;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.06);
+  width: 85%;
+  max-width: 1100px;
+  margin: 25px auto;
+  background: rgba(255, 255, 255, 0.98);
+  border-radius: 16px;
+  border: 1px solid rgba(203, 213, 225, 0.3);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08);
   display: flex;
   flex-direction: column;
-  justify-content: flex-end;
-  padding: 0;
-  min-height: 540px;
-  max-height: 80vh;
-  height: 70vh;
   overflow: hidden;
+  height: 75vh;
+  min-height: 550px;
+  transition: 0.2s ease;
 }
 
-/* Monitor Stand */
+.chat-wrapper-fixed:hover {
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.12);
+  transform: translateY(-2px);
+}
+
+/* ------------------------------------
+   CHAT WINDOW AREA
+------------------------------------ */
 
 .chat-box-fixed {
-  flex: 1 1 auto;
-  min-height: 0;
-  padding: 0;
-  background: var(--input-bg);
+  flex: 1;
+  padding: 30px 40px;
+  background: #fafbfc;
   overflow-y: auto;
   display: flex;
   flex-direction: column;
-  gap: 16px;
-  /* min-height: 540px; */
+  gap: 18px;
 }
 
+/* ------------------------------------
+   INPUT AREA (keyboard style)
+------------------------------------ */
 
-
-/* --- KEYBOARD STYLE INPUT --- */
 .input-box-fixed {
+  background: #ffffff;
+  border-top: 1px solid rgba(203, 213, 225, 0.4);
   display: flex;
-  align-items: center;
+  flex-direction: column;
+  gap: 14px;
+  padding: 20px 40px;
+}
+
+/* Clean textarea */
+.chatpage-textarea {
+  width: 100%;
+  min-height: 80px;
+  padding: 14px 16px;
+  border-radius: 10px;
+  background: #fff;
+  color: #111;
+  border: 1.5px solid var(--border-color);
+  resize: none;
+  font-size: 16px;
+  font-family: "Inter", sans-serif;
+  transition: all 0.25s ease;
+}
+
+.chatpage-textarea:focus {
+  border-color: #2563eb;
+  background: #f6f8ff;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+  outline: none;
+}
+
+/* ------------------------------------
+   INPUT LAYOUT (Split View)
+------------------------------------ */
+
+.input-row.black-box {
+  display: flex;
+  flex-direction: row;
+  gap: 16px;
+  width: 100%;
+  align-items: stretch;
+  background: #050816;
+  border-radius: 14px;
+  padding: 14px;
+  border: 1px solid #1f2937;
+  box-shadow: 0 18px 45px rgba(0, 0, 0, 0.55);
+}
+
+.chatpage-textarea {
+  flex-grow: 1;
+  width: auto; 
+  min-height: 120px;
+  background: #71655e;
+  color: #e5e7eb;
+  border-color: #111827;
+}
+
+.chatpage-textarea::placeholder {
+  color: #6b7280;
+}
+
+.controls-column {
+  display: flex;
+  flex-direction: column;
   justify-content: space-between;
-  background: var(--input-bg);
-  border-top: 1px solid var(--border-color);
-  padding: 16px 20px;
+  width: 170px;
   gap: 12px;
   flex-shrink: 0;
 }
 
-
-
-.textarea-fixed {
-  flex: 1;
-  font-size: 16px;
-  padding: 10px 14px;
-  border: 1px solid #cbd5e1;
+.mode-select {
+  width: 100%;
+  padding: 10px 12px;
   border-radius: 8px;
+  border: 1px solid #4b5563;
+  background: #020617;
+  color: #e5e7eb;
+  font-size: 14px;
+  font-weight: 500;
   outline: none;
-  background: white;
-  color: var(--text-color);
-  font-family: 'Segoe UI', sans-serif;
+  cursor: pointer;
+  appearance: none;
+  background-image: linear-gradient(45deg, transparent 50%, #9ca3af 50%),
+    linear-gradient(135deg, #9ca3af 50%, transparent 50%);
+  background-position: calc(100% - 16px) 16px, calc(100% - 11px) 16px;
+  background-size: 5px 5px, 5px 5px;
+  background-repeat: no-repeat;
 }
 
-
-.textarea-fixed:focus {
-  border: 2px solid #2563eb;
-  background: #f6f8ff;
+.mode-select:focus {
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.5);
 }
 
+.mode-select option {
+  background: #020617;
+  color: #e5e7eb;
+}
+
+/* Send Button */
 .sendbtn-fixed {
-  background: #2563eb;
+  padding: 0;
+  height: 45px;
+  border-radius: 10px;
+  background: linear-gradient(135deg, #2563eb, #4f46e5);
   color: #fff;
   border: none;
-  border-radius: 8px;
-  padding: 10px 24px;
-  font-size: 15px;
+  font-size: 16px;
   font-weight: 600;
   cursor: pointer;
-  transition: background 0.2s ease;
-  box-shadow: 0 2px 6px rgba(37, 99, 235, 0.2);
+  transition: transform 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
+  white-space: nowrap;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 10px 25px rgba(59, 130, 246, 0.5);
 }
+
 .sendbtn-fixed:hover {
-  background: #1d4ed8;
+  transform: translateY(-1px);
+  box-shadow: 0 14px 30px rgba(59, 130, 246, 0.75);
 }
 
+.sendbtn-fixed:active {
+  transform: translateY(1px);
+  box-shadow: 0 6px 16px rgba(59, 130, 246, 0.6);
+}
 
+/* Large variants - kept for compatibility */
+/* .large-textarea and .large-sendbtn sizes come from base styles */
 
+/* ------------------------------------
+   LOADING ANIMATION
+------------------------------------ */
 .loading {
   opacity: 0.7;
   font-style: italic;
   animation: pulse 1.2s infinite;
 }
+
 @keyframes pulse {
-  0% { opacity: 0.7; }
   50% { opacity: 1; }
-  100% { opacity: 0.7; }
 }
 
+/* ------------------------------------
+   MOBILE FIXES
+------------------------------------ */
+
 @media (max-width: 640px) {
-   .chat-wrapper-fixed {
-    margin: 20px auto;
+  .chat-wrapper-fixed {
+    margin: 15px;
     border-radius: 12px;
   }
 
   .chat-box-fixed {
-    padding: 12px;
+    padding: 14px;
   }
 
   .input-box-fixed {
-    flex-direction: column;
-    gap: 10px;
     padding: 12px;
   }
-
-  .monitor-stand {
-    width: 60vw;
-    min-width: 80px;
-    height: 16px;
-    border-radius: 0 0 8px 8px;
-  }
 }
+
+/* RADIO STYLE MODE SELECTOR */
+.radio-mode-container {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 6px;
+}
+
+.radio-options {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+.radio-options label {
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+
+.radio-options input[type="radio"] {
+  accent-color: #2563eb;
+  width: 18px;
+  height: 18px;
+}
+
+

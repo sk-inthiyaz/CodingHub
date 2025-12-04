@@ -43,7 +43,16 @@ const streakQuestionSchema = new mongoose.Schema({
   functionSignature: {
     name: { type: String, default: 'twoSum' },
     params: [{ type: String }],
-    returnType: { type: String, default: 'array' }
+    returnType: { 
+      type: String,
+      required: true,
+      enum: [
+        'int','long','float','double','string','boolean',
+        'int[]','long[]','float[]','double[]','string[]','boolean[]',
+        'int[][]','string[][]',
+        'ListNode','TreeNode'
+      ]
+    }
   },
   testCases: [{
     input: {
@@ -52,7 +61,11 @@ const streakQuestionSchema = new mongoose.Schema({
     },
     expectedOutput: {
       type: String,
-      required: true
+      required: true,
+      validate: {
+        validator: function(v) { return v !== undefined && v !== null; },
+        message: 'expectedOutput is required'
+      }
     },
     explanation: String,
     isHidden: {

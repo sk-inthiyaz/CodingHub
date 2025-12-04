@@ -5,6 +5,7 @@ const PracticeProblem = require('../models/PracticeProblem');
 const { GEMINI_URL, API_KEY } = require('../config/geminiConfig');
 const { auth } = require('../middleware/auth');
 const practiceController = require('../controllers/practiceController');
+const { validateProblemPayload, isAllowedReturnType } = require('../utils/validator');
 
 // ===============================
 // NEW PRACTICE SYSTEM ROUTES
@@ -77,7 +78,7 @@ router.get('/submissions/:submissionId', auth, practiceController.getSubmissionD
 // Upload practice problems (admin only)
 router.post('/admin/upload-problems', isAdmin, async (req, res) => {
   try {
-    const { problems, replaceExisting } = req.body;
+    const { problems, replaceExisting, autoMigrate } = req.body;
     console.log('📤 [POST /admin/upload-problems] User:', req.user?.email, 'Problems count:', problems?.length);
 
     if (!Array.isArray(problems) || problems.length === 0) {
@@ -92,6 +93,42 @@ router.post('/admin/upload-problems', isAdmin, async (req, res) => {
 
     for (const problemData of problems) {
       try {
+        // Strict validations before touching DB
+        if (!problemData.functionSignature || !isAllowedReturnType(problemData.functionSignature.returnType)) {
+          if (autoMigrate) {
+            const { migrateReturnTypeIfNeeded } = require('../utils/validator');
+            const { migrated, warnings } = migrateReturnTypeIfNeeded(problemData);
+            if (migrated && isAllowedReturnType(problemData.functionSignature.returnType)) {
+              // continue with warnings noted
+            } else {
+              const rt = problemData.functionSignature?.returnType;
+              results.failed.push({
+                title: problemData.title || 'Unknown',
+                error: `Invalid returnType '${rt}'. Use explicit tokens like int[], string[], boolean[].`,
+                field: 'functionSignature.returnType',
+                suggestion: "Use one of: int, long, float, double, string, boolean, int[], long[], float[], double[], string[], boolean[], int[][], string[][], ListNode, TreeNode."
+              });
+              continue;
+            }
+          } else {
+          const rt = problemData.functionSignature?.returnType;
+          results.failed.push({
+            title: problemData.title || 'Unknown',
+            error: `Invalid returnType '${rt}'. Use explicit tokens like int[], string[], boolean[].`,
+            field: 'functionSignature.returnType',
+            suggestion: "Use one of: int, long, float, double, string, boolean, int[], long[], float[], double[], string[], boolean[], int[][], string[][], ListNode, TreeNode."
+          });
+          continue;
+          }
+        }
+
+        // Require all templates present
+        const { errors, warnings } = validateProblemPayload(problemData);
+        if (errors.length) {
+          results.failed.push({ title: problemData.title || 'Unknown', errors });
+          continue;
+        }
+
         // Check if problem already exists
         const existing = await PracticeProblem.findOne({ title: problemData.title });
         

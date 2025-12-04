@@ -5,6 +5,7 @@ const { runCodeInDocker } = require("../utils/dockerRunner");
 const { wrapCodeWithHarness } = require("../utils/codeHarness");
 const { saveCode } = require("../utils/storageService");
 const { formatErrorForDisplay } = require("../utils/errorParser");
+const { validateProblemPayload, isAllowedReturnType } = require("../utils/validator");
 
 // ⏰ Helper: Parse date string in YYYY-MM-DD format to local date at 00:00:00
 function parseLocalDate(dateString) {
@@ -237,6 +238,19 @@ const addStreakQuestion = async (req, res) => {
     const date = new Date(activeDate || Date.now());
     date.setHours(0, 0, 0, 0);
 
+    // Strict validation
+    if (!functionSignature || !isAllowedReturnType(functionSignature.returnType)) {
+      return res.status(400).json({
+        message: `Invalid returnType '${functionSignature?.returnType}'. Use explicit tokens like int[], string[], boolean[].`,
+        field: 'functionSignature.returnType',
+        suggestion: "Use one of: int, long, float, double, string, boolean, int[], long[], float[], double[], string[], boolean[], int[][], string[][], ListNode, TreeNode."
+      });
+    }
+    const { errors } = validateProblemPayload({ title, description, constraints, hints, testCases, functionSignature, codeTemplate });
+    if (errors.length) {
+      return res.status(400).json({ message: 'Validation failed', errors });
+    }
+
     const newQuestion = new StreakQuestion({
       level,
       levelName,
@@ -246,7 +260,7 @@ const addStreakQuestion = async (req, res) => {
       hints: hints || [],
       starterCode: starterCode || '// Write your code here...',
       testCases,
-      functionSignature: functionSignature || { name: 'solution', params: [], returnType: 'any' },
+      functionSignature: functionSignature,
       codeTemplate: codeTemplate || {},
       activeDate: date
     });

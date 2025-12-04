@@ -58,6 +58,14 @@
   letter-spacing: -0.5px;
   text-align: left;
   margin-right: 12px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  user-select: none;
+}
+
+.navbar-title:hover {
+  color: #1d4ed8;
+  transform: scale(1.02);
 }
 
 .navbar-right-group {

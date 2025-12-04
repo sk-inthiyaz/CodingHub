@@ -1,0 +1,93 @@
+[
+  {
+    "level": 1,
+    "levelName": "Easy",
+    "title": "FizzBuzz",
+    "description": "Given an integer n, return a string array answer (1-indexed) where:\n\n- answer[i] == 'FizzBuzz' if i is divisible by 3 and 5.\n- answer[i] == 'Fizz' if i is divisible by 3.\n- answer[i] == 'Buzz' if i is divisible by 5.\n- answer[i] == i (as a string) if none of the above conditions are true.",
+    "constraints": "1 <= n <= 10^4",
+    "hints": [
+      "Check divisibility by 15 first (both 3 and 5)",
+      "Then check divisibility by 3",
+      "Then check divisibility by 5",
+      "Use modulo operator % to check divisibility"
+    ],
+    "functionSignature": {
+      "name": "fizzBuzz",
+      "params": ["n"],
+      "returnType": "array"
+    },
+    "codeTemplate": {
+      "javascript": "/**\n * @param {number} n\n * @return {string[]}\n */\nfunction fizzBuzz(n) {\n    // Write your solution here\n}\n",
+      "python": "class Solution:\n    def fizzBuzz(self, n):\n        \"\"\"\n        :type n: int\n        :rtype: List[str]\n        \"\"\"\n        # Write your solution here\n        pass\n",
+      "java": "class Solution {\n    public List<String> fizzBuzz(int n) {\n        // Write your solution here\n        \n    }\n}\n",
+      "cpp": "class Solution {\npublic:\n    vector<string> fizzBuzz(int n) {\n        // Write your solution here\n        \n    }\n};\n"
+    },
+    "testCases": [
+      {
+        "input": "3",
+        "expectedOutput": "[\"1\",\"2\",\"Fizz\"]",
+        "explanation": "1, 2, and 3 divisible by 3",
+        "isHidden": false
+      },
+      {
+        "input": "5",
+        "expectedOutput": "[\"1\",\"2\",\"Fizz\",\"4\",\"Buzz\"]",
+        "explanation": "3 is divisible by 3, 5 is divisible by 5",
+        "isHidden": false
+      },
+      {
+        "input": "15",
+        "expectedOutput": "[\"1\",\"2\",\"Fizz\",\"4\",\"Buzz\",\"Fizz\",\"7\",\"8\",\"Fizz\",\"Buzz\",\"11\",\"Fizz\",\"13\",\"14\",\"FizzBuzz\"]",
+        "explanation": "15 is divisible by both 3 and 5",
+        "isHidden": true
+      }
+    ],
+    "activeDate": "2025-11-21",
+    "expirationDate": "2025-11-21T23:59:59.999Z"
+  },
+  {
+    "level": 2,
+    "levelName": "Mid",
+    "title": "Group Anagrams",
+    "description": "Given an array of strings strs, group the anagrams together. You can return the answer in any order.\n\nAn Anagram is a word or phrase formed by rearranging the letters of a different word or phrase, typically using all the original letters exactly once.",
+    "constraints": "1 <= strs.length <= 10^4\n0 <= strs[i].length <= 100\nstrs[i] consists of lowercase English letters.",
+    "hints": [
+      "Use a hash map to group anagrams",
+      "Sort each string as a key",
+      "Or use character frequency as key"
+    ],
+    "functionSignature": {
+      "name": "groupAnagrams",
+      "params": ["strs"],
+      "returnType": "array"
+    },
+    "codeTemplate": {
+      "javascript": "/**\n * @param {string[]} strs\n * @return {string[][]}\n */\nfunction groupAnagrams(strs) {\n    // Write your solution here\n}\n",
+      "python": "class Solution:\n    def groupAnagrams(self, strs):\n        \"\"\"\n        :type strs: List[str]\n        :rtype: List[List[str]]\n        \"\"\"\n        # Write your solution here\n        pass\n",
+      "java": "class Solution {\n    public List<List<String>> groupAnagrams(String[] strs) {\n        // Write your solution here\n        \n    }\n}\n",
+      "cpp": "class Solution {\npublic:\n    vector<vector<string>> groupAnagrams(vector<string>& strs) {\n        // Write your solution here\n        \n    }\n};\n"
+    },
+    "testCases": [
+      {
+        "input": "[\"eat\",\"tea\",\"tan\",\"ate\",\"nat\",\"bat\"]",
+        "expectedOutput": "[[\"bat\"],[\"nat\",\"tan\"],[\"ate\",\"eat\",\"tea\"]]",
+        "explanation": "Group strings that are anagrams",
+        "isHidden": false
+      },
+      {
+        "input": "[\"\"]",
+        "expectedOutput": "[[\"\"]]",
+        "explanation": "Single empty string",
+        "isHidden": false
+      },
+      {
+        "input": "[\"a\"]",
+        "expectedOutput": "[[\"a\"]]",
+        "explanation": "Single character",
+        "isHidden": true
+      }
+    ],
+    "activeDate": "2025-11-22",
+    "expirationDate": "2025-11-22T23:59:59.999Z"
+  }
+]

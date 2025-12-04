@@ -1,0 +1,1686 @@
+🏗️ COMPLETE PLATFORM SPECIFICATION: CODING PRACTICE BACKEND & CONTENT MANAGEMENT
+Version: 1.0
+Date: November 14, 2025
+Target Audience: Backend Engineers, DevOps, Content Creators
+Competitive Coding Content Spec — Practice Problems + Streak Questions
+
+Contents
+- 1) High-level Architecture Diagram (text)
+- 2) JSON Schemas (practice-problems.json, streak-questions.json)
+- 3) Canonical returnType Mapping
+- 4) Uploader/Validator Behavior
+- 5) Test Case Runner Spec
+- 6) Parsing Rules for testCases.input
+- 7) Sample JSON Problems (practice, streak)
+- 8) Code Template Linter Rules
+- 9) Common Error Scenarios & Messages
+- 10) Publishing Workflow + Preview
+- 11) CI/CD & Automation Hooks
+- 12) Security & Sandbox Policies
+- 13) Monitoring & Observability
+- 14) Developer Docs & Examples
+- 15) Sample Scripts (Node.js, Python)
+- 16) Edge Cases & Compatibility
+- 17) Upload-time Automated Test Checklist
+
+Notes
+- This spec standardizes strict returnType tokens (no ambiguous "array").
+- Input parsing aligns with the repository harness (server/utils/codeHarness.js) and docker runner (server/utils/dockerRunner.js).
+
+1) High-level Architecture Diagram (text)
+- Admin Web UI (Uploader)
+  - Upload JSON files (practice or streak) and assets.
+  - Endpoints: validate, preview, publish, rollback.
+- Validation Service
+  - Performs JSON Schema validation and business rules.
+  - Provides structured errors with JSON pointers and suggestions.
+- Storage
+  - Object storage (S3/GCS) for raw JSON in “staging/” and “public/”.
+  - Database index (e.g., MongoDB/Postgres) for searchable metadata, versioning, and publish state.
+- Test-Runner (Sandboxed Executor)
+  - Docker-based isolated runners per language (Node, Python, Java, C++).
+  - Compiles/executes candidate solutions + code templates with harness.
+- Preview Renderer
+  - Renders problem detail page using uploaded JSON + templates.
+  - Generates example run using sample visible test case.
+- CDN
+  - Serves published JSON and static artifacts to clients at scale.
+- Scheduler
+  - For streak releases, enforces publishAt in a consistent timezone (UTC) and activates questions on schedule.
+
+Core Admin API Endpoints
+- POST /api/content/validate
+  - Body: { type: "practice"|"streak", payload: <JSON file content>, options?: { strict?: boolean } }
+  - Result: { valid: boolean, errors: [], warnings: [], normalized?: object }
+- POST /api/content/preview
+  - Body: { type: "practice"|"streak", payload: <JSON>, language: "javascript"|"python"|"java"|"cpp", sampleIndex?: number }
+  - Runs a sample visible test in sandbox, returns stdout/stderr, compile diagnostics.
+- POST /api/content/upload
+  - Body: { type: "practice"|"streak", payload: <JSON>, replaceExisting?: boolean }
+  - Stores in staging bucket; returns contentId and version.
+- POST /api/content/publish
+  - Body: { contentId, version, publishAt?: string (ISO 8601, UTC), notes?: string }
+  - Copies from staging to public, writes DB row (status: published, timestamps).
+- POST /api/content/rollback
+  - Body: { contentId, toVersion, reason }
+  - Unpublishes current, re-publishes previous version, updates index.
+
+2) JSON Schemas (strict)
+Conventions
+- Use JSON Schema Draft-07.
+- Maximum sizes prevent oversized uploads.
+- All dates in ISO 8601; for streak date/day fields, use YYYY-MM-DD (format: date).
+- codeTemplate must include all four languages: javascript, python, java, cpp.
+- returnType must be from the strict allowed set (see section 3).
+
+2.1 practice-problems.json Schema (object with problems[])
+```
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://example.com/schemas/practice-problems.json",
+  "type": "object",
+  "required": ["problems"],
+  "additionalProperties": false,
+  "properties": {
+    "problems": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 500,
+      "items": {
+        "type": "object",
+        "required": [
+          "title",
+          "description",
+          "difficulty",
+          "topic",
+          "functionSignature",
+          "codeTemplate",
+          "testCases"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "id": { "type": "string", "minLength": 1, "maxLength": 64, "pattern": "^[A-Za-z0-9_-]+$" },
+          "title": { "type": "string", "minLength": 3, "maxLength": 120 },
+          "description": { "type": "string", "minLength": 1, "maxLength": 6000 },
+          "difficulty": { "type": "string", "enum": ["Easy", "Mid", "Medium", "Hard", "Mix", "Mid-Easy"] },
+          "topic": { "type": "string", "minLength": 1, "maxLength": 80 },
+          "constraints": { "type": "string", "minLength": 0, "maxLength": 3000 },
+          "hints": {
+            "type": "array",
+            "maxItems": 20,
+            "items": { "type": "string", "minLength": 1, "maxLength": 300 }
+          },
+          "functionSignature": {
+            "type": "object",
+            "required": ["name", "params", "returnType"],
+            "additionalProperties": false,
+            "properties": {
+              "name": { "type": "string", "minLength": 1, "maxLength": 64, "pattern": "^[A-Za-z_][A-Za-z0-9_]*$" },
+              "params": {
+                "type": "array",
+                "maxItems": 8,
+                "items": { "type": "string", "minLength": 1, "maxLength": 32, "pattern": "^[A-Za-z_][A-Za-z0-9_]*$" }
+              },
+              "returnType": { "$ref": "#/definitions/returnType" }
+            }
+          },
+          "codeTemplate": {
+            "type": "object",
+            "required": ["javascript", "python", "java", "cpp"],
+            "additionalProperties": false,
+            "properties": {
+              "javascript": { "type": "string", "minLength": 1, "maxLength": 50000 },
+              "python": { "type": "string", "minLength": 1, "maxLength": 50000 },
+              "java": { "type": "string", "minLength": 1, "maxLength": 50000 },
+              "cpp": { "type": "string", "minLength": 1, "maxLength": 50000 }
+            }
+          },
+          "examples": {
+            "type": "array",
+            "maxItems": 10,
+            "items": {
+              "type": "object",
+              "required": ["input", "output"],
+              "additionalProperties": false,
+              "properties": {
+                "input": { "type": "string", "minLength": 0, "maxLength": 2000 },
+                "output": { "type": "string", "minLength": 0, "maxLength": 2000 },
+                "explanation": { "type": "string", "minLength": 0, "maxLength": 2000 }
+              }
+            }
+          },
+          "testCases": {
+            "type": "array",
+            "minItems": 1,
+            "maxItems": 100,
+            "items": {
+              "type": "object",
+              "required": ["input", "expectedOutput", "isHidden"],
+              "additionalProperties": false,
+              "properties": {
+                "input": { "type": "string", "minLength": 0, "maxLength": 2000 },
+                "expectedOutput": { "type": "string", "minLength": 0, "maxLength": 2000 },
+                "explanation": { "type": "string", "minLength": 0, "maxLength": 2000 },
+                "isHidden": { "type": "boolean" }
+              }
+            }
+          },
+          "tags": {
+            "type": "array",
+            "maxItems": 20,
+            "items": { "type": "string", "minLength": 1, "maxLength": 40 }
+          },
+          "metadata": { "type": "object", "additionalProperties": true },
+          "publishAt": { "type": ["string", "null"], "format": "date-time" },
+          "active": { "type": "boolean" }
+        }
+      }
+    }
+  },
+  "definitions": {
+    "returnType": {
+      "type": "string",
+      "enum": [
+        "int", "long", "float", "double", "boolean", "string",
+        "int[]", "long[]", "float[]", "double[]", "boolean[]", "string[]",
+        "List<int>", "List<long>", "List<float>", "List<double>", "List<boolean>", "List<string>"
+      ]
+    }
+  }
+}
+```
+
+2.2 streak-questions.json Schema (daily micro-challenges)
+```
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://example.com/schemas/streak-questions.json",
+  "type": "object",
+  "required": ["date", "questions"],
+  "additionalProperties": false,
+  "properties": {
+    "date": { "type": "string", "format": "date" },
+    "questions": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 10,
+      "items": {
+        "type": "object",
+        "required": ["title", "description", "functionSignature", "testCases"],
+        "additionalProperties": false,
+        "properties": {
+          "title": { "type": "string", "minLength": 3, "maxLength": 120 },
+          "description": { "type": "string", "minLength": 1, "maxLength": 4000 },
+          "constraints": { "type": "string", "minLength": 0, "maxLength": 3000 },
+          "hints": {
+            "type": "array",
+            "maxItems": 10,
+            "items": { "type": "string", "minLength": 1, "maxLength": 300 }
+          },
+          "difficulty": { "type": ["string", "null"], "enum": ["Easy", "Mid", "Medium", "Hard", "Mix", "Mid-Easy", null] },
+          "level": { "type": ["integer", "null"], "minimum": 1, "maximum": 5 },
+          "functionSignature": {
+            "type": "object",
+            "required": ["name", "params", "returnType"],
+            "additionalProperties": false,
+            "properties": {
+              "name": { "type": "string", "minLength": 1, "maxLength": 64, "pattern": "^[A-Za-z_][A-Za-z0-9_]*$" },
+              "params": {
+                "type": "array",
+                "maxItems": 5,
+                "items": { "type": "string", "minLength": 1, "maxLength": 32, "pattern": "^[A-Za-z_][A-Za-z0-9_]*$" }
+              },
+              "returnType": { "$ref": "#/definitions/returnType" }
+            }
+          },
+          "codeTemplate": {
+            "type": "object",
+            "required": ["javascript", "python", "java", "cpp"],
+            "additionalProperties": false,
+            "properties": {
+              "javascript": { "type": "string", "minLength": 1, "maxLength": 50000 },
+              "python": { "type": "string", "minLength": 1, "maxLength": 50000 },
+              "java": { "type": "string", "minLength": 1, "maxLength": 50000 },
+              "cpp": { "type": "string", "minLength": 1, "maxLength": 50000 }
+            }
+          },
+          "testCases": {
+            "type": "array",
+            "minItems": 1,
+            "maxItems": 30,
+            "items": {
+              "type": "object",
+              "required": ["input", "expectedOutput", "isHidden"],
+              "additionalProperties": false,
+              "properties": {
+                "input": { "type": "string", "minLength": 0, "maxLength": 2000 },
+                "expectedOutput": { "type": "string", "minLength": 0, "maxLength": 2000 },
+                "explanation": { "type": "string", "minLength": 0, "maxLength": 2000 },
+                "isHidden": { "type": "boolean" }
+              }
+            }
+          },
+          "activeDate": { "type": ["string", "null"], "format": "date" },
+          "expirationDate": { "type": ["string", "null"], "format": "date" }
+        }
+      }
+    }
+  },
+  "definitions": {
+    "returnType": {
+      "type": "string",
+      "enum": [
+        "int", "long", "float", "double", "boolean", "string",
+        "int[]", "long[]", "float[]", "double[]", "boolean[]", "string[]",
+        "List<int>", "List<long>", "List<float>", "List<double>", "List<boolean>", "List<string>"
+      ]
+    }
+  }
+}
+```
+
+3) Canonical returnType Mapping
+- Allowed tokens and exact language mappings. Ambiguous tokens like "array" are forbidden.
+
+Scalar Types
+- int → Java: int; Python: int; JS: number; C++: int
+- long → Java: long; Python: int; JS: number; C++: long long
+- float → Java: float; Python: float; JS: number; C++: float
+- double → Java: double; Python: float; JS: number; C++: double
+- boolean → Java: boolean; Python: bool; JS: boolean; C++: bool
+- string → Java: String; Python: str; JS: string; C++: string (std::string)
+
+Array Types
+- int[] → Java: int[]; Python: List[int]; JS: number[]; C++: vector<int>
+- long[] → Java: long[]; Python: List[int]; JS: number[]; C++: vector<long long>
+- float[] → Java: float[]; Python: List[float]; JS: number[]; C++: vector<float>
+- double[] → Java: double[]; Python: List[float]; JS: number[]; C++: vector<double>
+- boolean[] → Java: boolean[]; Python: List[bool]; JS: boolean[]; C++: vector<bool>
+- string[] → Java: String[]; Python: List[str]; JS: string[]; C++: vector<string>
+
+List Types
+- List<int> → Java: List<Integer> or int[] (choose List<Integer> for consistency in templates); Python: List[int]; JS: number[]; C++: vector<int>
+- List<long> → Java: List<Long>; Python: List[int]; JS: number[]; C++: vector<long long>
+- List<float> → Java: List<Float>; Python: List[float]; JS: number[]; C++: vector<float>
+- List<double> → Java: List<Double>; Python: List[float]; JS: number[]; C++: vector<double>
+- List<boolean> → Java: List<Boolean>; Python: List[bool]; JS: boolean[]; C++: vector<bool>
+- List<string> → Java: List<String>; Python: List[str]; JS: string[]; C++: vector<string>
+
+Forbidden / Why
+- "array": ambiguous — Java requires element type (int[] vs String[]). Use int[] or string[] explicitly.
+- Generic "object": ambiguous — state concrete shape or use string/JSON serialization.
+
+4) Uploader/Validator Behavior
+Sequence
+1. Syntax parse and JSON Schema validation (fail fast). Return all schema violations with JSON pointers.
+2. Business rules validation:
+   - Unique title and/or id across existing DB.
+   - No duplicate testCases by .input (property-level uniqueness within each problem).
+   - returnType vs codeTemplate consistency (language presence, expected signatures).
+   - functionSignature.name and params naming rules; reserved words rejection.
+   - title length and stop-words (optional warning).
+3. Template type-checks:
+   - Java: template contains class Solution and method with declared return type and exact param names.
+   - Python: def name(params) exists; indentation is valid; no syntax errors via ast parse.
+   - JS: function name(params) or class Solution method; transpile (optional) and lints pass.
+   - C++: class Solution with method name and params; compiles in dry-run harness.
+4. Warnings (non-fatal):
+   - testCases.input contains unnecessary surrounding quotes for strings.
+   - Escaped quotes likely double-encoded JSON.
+   - Suspicious placeholders present but param names differ.
+5. Output rich error objects: { message, pointer, path, suggestion, snippet }
+
+Examples
+- Schema violation: "Missing required field `functionSignature.name` in problem #2" pointer: "/problems/1/functionSignature"
+- Duplicate test input: "Duplicate testCases.input in problem 'Two Sum': '[3,2,4]\n6'" pointer: "/problems/0/testCases"
+- Return type mismatch: "Return type `array` is ambiguous; use `int[]` or `string[]`" pointer: "/problems/0/functionSignature/returnType"
+- Template missing: "Missing codeTemplate.javascript — include templates for these languages: javascript, python, java, cpp"
+
+5) Test Case Runner Spec
+Environment
+- Sandbox: Docker with no network, limited CPU/memory, seccomp, timeout.
+- Images: node:20-alpine, python:3.11-alpine, openjdk:17-alpine, gcc:latest.
+- Limits (defaults): CPU 0.5 core, Memory 128MB, Timeout 5s per test, Max output 1MB.
+
+Compile/Run
+- Java: javac Main.java; run java -cp /code Main.
+- C++: g++ file.cpp -O2 -std=gnu++17 -o a.out; run ./a.out.
+- JS: node file.js.
+- Python: python file.py.
+
+Input Passing
+- Each testCases.input is a single string. The harness converts to N lines (one per param) using rules in section 6, and feeds via stdin.
+- Multi-params: prefer newline separation; fallback to smart comma split.
+
+Output Comparison
+- Compare stdout normalized:
+  - Trim leading/trailing whitespace.
+  - If expectedOutput parses as JSON, compare JSON values (order matters unless explicitly unordered spec is declared; for unordered sets, sort before compare if problem metadata marks unorderedOutput=true — optional extension).
+  - Booleans: accept true/false case-insensitive.
+  - Numbers: exact match or stringified JSON equivalence.
+
+Visibility, Limits, Retries
+- Visible tests returned to user; hidden tests only run on submit.
+- Time limit per test; if timeout, mark as TLE with stderr note.
+- No retries by default; optional single retry only for transient container start failures (not for user code timeouts).
+- Disallow nondeterminism: no random seeds without deterministic config; flag usage.
+
+6) Parsing Rules for testCases.input
+Definitions
+- Single param examples:
+  - "[1,2,3]" → array of ints.
+  - "abcabcbb" → string.
+  - "5" → number.
+- Two params examples:
+  - "[1,2,3], 3" or "[1,2,3]\n3" → array and number.
+- Two arrays:
+  - "[1,2,4], [1,3,4]" or "[1,2,4]\n[1,3,4]".
+
+Exact Parser Logic and Precedence (aligned with codeHarness.js)
+1. Let raw = input.trim(). If raw contains a newline, split on /\r?\n/ into lines, trim each, take the first paramCount lines.
+2. Else, if paramCount == 2, try to match /^([\[{].*?[\]}])\s*,\s*(.+)$/ (array/object first, then comma, then rest). If matches, return [group1.trim(), group2.trim()].
+3. Else, do bracket-aware smart comma split up to paramCount parts, respecting quotes and bracket depth.
+4. For each param token:
+   - If token starts and ends with a double-quote, treat as raw string token without extra quotes (strip the outermost quotes only).
+   - Else JSON.parse the token. If parse fails and token is numeric-like, coerce to number (language-specific harness may JSON.parse first).
+5. Strings in JSON must only be quoted as required by JSON encoding when embedded; do not double-wrap values. For array of strings, e.g., "[\"a\",\"b\"]" is correct JSON serialization of ["a","b"]. Do NOT include extra outer quotes around the whole input when the parameter is already a string literal line in the testCases.
+
+Type Conversion Examples
+- Input line: abc → JS: "abc", Py: "abc", Java: "abc", C++: string("abc").
+- Input line: "abc" (with quotes) → becomes abc (quotes removed).
+- Input line: [1,2] → parsed array of numbers.
+- Two params: lines[0] array, lines[1] number or string depending on quotes.
+
+7) Sample JSON Problems (fully-validated)
+7.1 Practice Problems (object with problems[])
+```
+{
+  "problems": [
+    {
+      "id": "two-sum",
+      "title": "Two Sum",
+      "description": "Given an array of integers nums and an integer target, return indices of the two numbers such that they add up to target.",
+      "difficulty": "Easy",
+      "topic": "Arrays",
+      "constraints": "2 <= nums.length <= 1e4\n-1e9 <= nums[i], target <= 1e9\nExactly one solution exists",
+      "hints": ["Use a hash map", "Check complement target - x"],
+      "functionSignature": { "name": "twoSum", "params": ["nums", "target"], "returnType": "int[]" },
+      "codeTemplate": {
+        "javascript": "/**\n * @param {number[]} nums\n * @param {number} target\n * @return {number[]}\n */\nfunction twoSum(nums, target) {\n  // TODO\n}\n",
+        "python": "def twoSum(nums, target):\n    # TODO\n    pass\n",
+        "java": "import java.util.*;\nclass Solution {\n    public int[] twoSum(int[] nums, int target) {\n        // TODO\n        return new int[0];\n    }\n}\n",
+        "cpp": "#include <bits/stdc++.h>\nusing namespace std;\nclass Solution {\npublic:\n    vector<int> twoSum(vector<int>& nums, int target) {\n        // TODO\n        return {};\n    }\n};\n"
+      },
+      "testCases": [
+        { "input": "[2,7,11,15]\n9", "expectedOutput": "[0,1]", "explanation": "2+7=9", "isHidden": false },
+        { "input": "[3,2,4]\n6", "expectedOutput": "[1,2]", "explanation": "2+4=6", "isHidden": false },
+        { "input": "[3,3]\n6", "expectedOutput": "[0,1]", "explanation": "duplicate pair", "isHidden": true },
+        { "input": "[1,5,5,3]\n10", "expectedOutput": "[1,2]", "explanation": "5+5", "isHidden": true }
+      ]
+    }
+  ]
+}
+```
+
+7.2 Streak Questions (daily set)
+```
+{
+  "date": "2025-11-15",
+  "questions": [
+    {
+      "title": "Add Two Integers",
+      "description": "Given two integers a and b, return their sum.",
+      "constraints": "-1e9 <= a,b <= 1e9",
+      "hints": ["Use +", "Check negatives"],
+      "difficulty": "Easy",
+      "level": 1,
+      "functionSignature": { "name": "add", "params": ["a", "b"], "returnType": "int" },
+      "codeTemplate": {
+        "javascript": "function add(a, b) {\n  // TODO\n}\n",
+        "python": "def add(a, b):\n    # TODO\n    pass\n",
+        "java": "class Solution {\n    public int add(int a, int b) {\n        // TODO\n        return 0;\n    }\n}\n",
+        "cpp": "class Solution {\npublic:\n    int add(int a, int b) {\n        // TODO\n        return 0;\n    }\n};\n"
+      },
+      "testCases": [
+        { "input": "2\n3", "expectedOutput": "5", "isHidden": false },
+        { "input": "0\n0", "expectedOutput": "0", "isHidden": false },
+        { "input": "-5\n10", "expectedOutput": "5", "isHidden": false },
+        { "input": "123\n-23", "expectedOutput": "100", "isHidden": true }
+      ],
+      "activeDate": "2025-11-15"
+    }
+  ]
+}
+```
+
+8) Code Template Linter Rules
+- Common
+  - All four languages present under codeTemplate.
+  - Function/class name equals functionSignature.name.
+  - Parameter count equals functionSignature.params length (names should match exactly).
+- Java
+  - Must contain: class Solution { public <Return> <name>(<typed params>) { ... } }
+  - Return type compatible with returnType mapping.
+  - If using arrays, ensure proper types (int[] vs String[]). For List<T>, require imports and generics.
+- Python
+  - def <name>(params): present; syntactically valid under ast.parse.
+  - No tabs/mixed indentation errors.
+- JavaScript
+  - function <name>(params) { } or class Solution { <name>(params) { } }
+  - No top-level syntax errors (esprima/esbuild parse OK).
+- C++
+  - class Solution { public: <ret> <name>(<typed params>) { } } present.
+  - Compiles with -std=gnu++17 in a dry run harness.
+- Soft warnings
+  - Placeholder comments allowed, but warn if parameter identifiers differ from signature.
+
+9) Common Error Scenarios & Messages
+- Malformed JSON: "Upload failed — invalid JSON at line X: <parser message>"
+- Schema violation: "Missing required field `functionSignature.name` in problem #2"
+- Return type mismatch: "Return type `array` is ambiguous; use `int[]` or `string[]`"
+- Escaped quotes in input: "Test case #1 input contains leading/trailing quotes — remove outer quotes so value is (abc)"
+- codeTemplate missing language: "Missing codeTemplate.javascript — include templates for these languages"
+- Duplicate input: "Duplicate testCases.input in 'TITLE': '<input>' appears more than once"
+- Signature mismatch: "Java method signature does not match functionSignature (name/params/returnType)"
+- Compile error surfaced: "Java compile error at line 12: cannot find symbol 'List' — add import java.util.*;"
+
+10) Publishing Workflow + Preview Rendering
+- Draft → Validate → Preview → Publish
+  - Draft: Save to staging bucket with contentId+version.
+  - Validate: schema + business rules + template lint.
+  - Preview: Run a visible sample test via sandbox; render problem page.
+  - Publish: Copy JSON from staging to public; insert DB index row { id, type, version, checksum, publishedAtUTC }.
+- Scheduled release (streak)
+  - Use publishAt (UTC). Scheduler promotes to public exactly at timestamp.
+  - Timezone handling: store/compute in UTC; UI shows local time.
+- Rollback
+  - POST /api/content/rollback with target version; unpublish current; promote previous; update DB and purge CDN.
+
+11) CI/CD & Automation Hooks
+- GitHub Actions (example)
+  - On PR: run schema validation with ajv; run static lints; run harness smoke tests on sample test cases.
+  - Post PR comment with errors/warnings summary.
+  - On merge to main: re-validate; run extended tests; if "autoPublish": false, only stage.
+- Caching: cache docker images per language runners.
+- Fast-fail: if schema fails, skip downstream jobs.
+
+12) Security & Sandbox Policies
+- No network access; docker run without NET capabilities.
+- Resource limits: --cpus=0.5, -m 128m, timeout 5s.
+- Seccomp/apparmor profile; no privileged containers; read-only filesystem where possible.
+- Detect/flag suspicious code:
+  - Java: System.exit, Runtime.getRuntime().exec.
+  - Python: os.system, subprocess, open with write mode.
+  - JS: child_process, fs.writeFile.
+  - C++: system().
+- Kill long-running processes; enforce input/output size caps.
+
+13) Monitoring & Observability
+- Logs
+  - Upload attempts, validator results, runner compile/runtime diagnostics, publish/rollback events.
+- Metrics
+  - Upload failures by reason, validation error rates, test runner pass rate, mean compile time, mean runtime, timeout rate, publish latency.
+- Alerts
+  - Spike in schema failures (>10% per hour), runner timeout rate > 5%, sandbox failures, publish/rollback errors.
+
+14) Developer Docs & Examples (inline)
+- How to add problems
+  - Create a practice-problems JSON per schema, or streak-questions JSON for daily.
+  - Ensure returnType from allowed set and codeTemplate for all 4 languages.
+  - Verify locally with CLI (see section 15).
+- How to run local validator (Node)
+  - Use ajv to validate JSON; run static checks for duplicates and templates.
+- Conventions
+  - Dates in UTC; YYYY-MM-DD for daily streak; ISO 8601 with Z for publishAt.
+
+15) Sample Scripts
+15.1 Node.js validator + static checks (ajv)
+```
+// file: tools/validate.js
+const fs = require('fs');
+const path = require('path');
+const Ajv = require('ajv');
+const addFormats = require('ajv-formats');
+
+function loadSchema(p) { return JSON.parse(fs.readFileSync(p, 'utf8')); }
+
+function validateFile(filePath, type) {
+  const ajv = new Ajv({ allErrors: true, strict: true });
+  addFormats(ajv);
+  const schemaPath = type === 'practice' ? 'schemas/practice-problems.json' : 'schemas/streak-questions.json';
+  const schema = loadSchema(schemaPath);
+  const data = JSON.parse(fs.readFileSync(filePath, 'utf8'));
+  const validate = ajv.compile(schema);
+  const valid = validate(data);
+  if (!valid) {
+    console.error('Schema errors:');
+    for (const err of validate.errors) console.error(`- ${err.instancePath} ${err.message}`);
+    process.exit(1);
+  }
+  // business rules
+  const probList = type === 'practice' ? data.problems : data.questions;
+  const titles = new Set();
+  for (const [i, p] of probList.entries()) {
+    if (titles.has(p.title)) console.warn(`Warning: duplicate title at index ${i}: ${p.title}`);
+    titles.add(p.title);
+    if (p.testCases) {
+      const seenInputs = new Set();
+      for (const [ti, tc] of p.testCases.entries()) {
+        if (seenInputs.has(tc.input)) throw new Error(`Duplicate testCases.input at problem ${p.title} idx ${ti}`);
+        seenInputs.add(tc.input);
+        if (/^\".*\"$/.test(tc.input)) console.warn(`Probable extra quotes in input at ${p.title}#${ti}`);
+      }
+    }
+  }
+  console.log('OK');
+}
+
+if (require.main === module) {
+  const [,, file, type] = process.argv;
+  if (!file || !type) { console.error('Usage: node tools/validate.js <file> <practice|streak>'); process.exit(2);} 
+  validateFile(file, type);
+}
+```
+
+15.2 Python quick schema validation (jsonschema)
+```
+# file: tools/validate.py
+import json, sys
+from jsonschema import validate, Draft7Validator
+
+def main(file, schema_file):
+    with open(file, 'r', encoding='utf-8') as f: data = json.load(f)
+    with open(schema_file, 'r', encoding='utf-8') as f: schema = json.load(f)
+    v = Draft7Validator(schema)
+    errs = sorted(v.iter_errors(data), key=lambda e: e.path)
+    if errs:
+        for e in errs: print(f"- {'/'.join(map(str,e.path))}: {e.message}")
+        sys.exit(1)
+    print('OK')
+
+if __name__ == '__main__':
+    if len(sys.argv)<3: print('Usage: python tools/validate.py <file> <schema>'); sys.exit(2)
+    main(sys.argv[1], sys.argv[2])
+```
+
+15.3 Sample test-run param conversion (JS example)
+```
+// Given input "[1,2,3]\n3" and signature foo(nums, target)
+const fs = require('fs');
+const raw = fs.readFileSync(0, 'utf8').trim();
+const lines = raw.split(/\r?\n/);
+const nums = JSON.parse(lines[0]);
+const target = JSON.parse(lines[1]);
+console.log(JSON.stringify(foo(nums, target)));
+```
+
+16) Edge Cases & Compatibility
+- Date/time
+  - Use UTC everywhere; streak date uses format: date (YYYY-MM-DD). publishAt uses date-time with Z.
+- Multiple versions
+  - contentId stable across versions; newest published becomes active; rollback re-activates previous.
+- Migration (old datasets using "array")
+  - Rule: if functionSignature.returnType == "array":
+    - If examples/testCases expectedOutput parses as numbers array → int[]; strings array → string[]; booleans array → boolean[].
+    - Else require manual mapping flag. Provide a script:
+```
+// migrate-return-type.js
+// naive heuristic; review diffs
+```
+- Back-compat: validator can run in non-strict mode to auto-suggest mappings without publishing.
+
+17) Upload-time Automated Test Checklist
+- Schema validation (Draft-07) with formats.
+- Business rules: unique titles/ids; duplicate testCases.input check; returnType in allowed set.
+- Template lint: presence, signature match per language, basic parse/compile dry run.
+- Sample run: execute at least 1 visible test per problem in sandbox.
+- Security scan: simple static checks for exec/system calls and network attempts.
+- Size limits: title/description/codeTemplate lengths within thresholds.
+- Dates validated: ISO 8601 for publishAt; date for streak.
+- Results persisted to staging with versioning; deterministic checksum of payload.
+
+Commands (local helpers)
+- Validate practice file:
+  pwsh> node tools/validate.js .\practice-problems.json practice
+- Validate streak file:
+  pwsh> node tools/validate.js .\streak-questions.json streak
+
+End of Spec
+
+1. HIGH-LEVEL ARCHITECTURE DIAGRAM (TEXT)
+┌─────────────────────────────────────────────────────────────────────┐
+│                          ADMIN UI / WEB UPLOADER                     │
+│  (Upload JSON → Validate → Preview → Publish/Schedule)              │
+└────────────┬────────────────────────────────────────────────────────┘
+             │ POST /api/practice/admin/upload-problems
+             │ POST /api/streak/admin/daily
+             │ GET  /api/practice/admin/problems/all
+             ▼
+┌────────────────────────────────────────────────────────────────────┐
+│                      VALIDATION SERVICE LAYER                       │
+│  ┌──────────────┐  ┌───────────────┐  ┌─────────────────────┐    │
+│  │ Schema Check │→ │ Business Rules│→ │ Template Linter     │    │
+│  │ (ajv/JSON    │  │ Validator     │  │ (syntax check)      │    │
+│  │  Schema)     │  │               │  │                     │    │
+│  └──────────────┘  └───────────────┘  └─────────────────────┘    │
+└────────────┬───────────────────────────────────────────────────────┘
+             │ Valid JSON + metadata
+             ▼
+┌────────────────────────────────────────────────────────────────────┐
+│                    STORAGE LAYER (DUAL WRITE)                       │
+│  ┌──────────────────────┐    ┌───────────────────────────┐        │
+│  │  MongoDB/PostgreSQL  │    │  S3/GCS Bucket (staging)  │        │
+│  │  - Metadata Index    │    │  - Original JSON files    │        │
+│  │  - Search/Filter     │    │  - Version history        │        │
+│  │  - Status tracking   │    │                           │        │
+│  └──────────────────────┘    └───────────────────────────┘        │
+└────────────┬───────────────────────────────────────────────────────┘
+             │
+             ▼
+┌────────────────────────────────────────────────────────────────────┐
+│                      PREVIEW RENDERER SERVICE                       │
+│  - Renders codeTemplate with sample input                          │
+│  - Shows expected output vs actual (dry run)                       │
+│  GET /api/practice/admin/preview/:id                               │
+└────────────┬───────────────────────────────────────────────────────┘
+             │ Admin approves
+             ▼
+┌────────────────────────────────────────────────────────────────────┐
+│                     PUBLISH/SCHEDULER SERVICE                       │
+│  - Copies staging → production bucket/DB                           │
+│  - For streak: schedules by activeDate/publishAt (cron)            │
+│  - Updates CDN cache                                               │
+│  POST /api/practice/admin/publish/:id                              │
+│  POST /api/streak/admin/schedule                                   │
+└────────────┬───────────────────────────────────────────────────────┘
+             │
+             ▼
+┌────────────────────────────────────────────────────────────────────┐
+│                    PUBLIC API (User-Facing)                         │
+│  GET  /api/practice/problems (list with filters)                   │
+│  GET  /api/practice/problems/:id (single problem)                  │
+│  GET  /api/streak/today (today's question for user level)          │
+│  POST /api/practice/problems/:id/submit (submit solution)          │
+│  POST /api/streak/submit (submit streak solution)                  │
+└────────────┬───────────────────────────────────────────────────────┘
+             │ User submits code
+             ▼
+┌────────────────────────────────────────────────────────────────────┐
+│                    TEST RUNNER SERVICE (Sandboxed)                  │
+│  ┌──────────────────────────────────────────────────────────┐     │
+│  │  Docker Containers (isolated per-language)               │     │
+│  │  - node:20-alpine (JavaScript)                           │     │
+│  │  - python:3.11-alpine (Python)                           │     │
+│  │  - openjdk:17-alpine (Java)                              │     │
+│  │  - gcc:latest (C++)                                      │     │
+│  │                                                          │     │
+│  │  Security: --network=none, -m 128m, --cpus=0.5          │     │
+│  │  Timeout: 5s per test case                              │     │
+│  │  Input: stdin from testCases.input (parsed)             │     │
+│  │  Output: stdout compared to expectedOutput              │     │
+│  └──────────────────────────────────────────────────────────┘     │
+│  POST /internal/runner/execute                                     │
+└────────────┬───────────────────────────────────────────────────────┘
+             │ Results
+             ▼
+┌────────────────────────────────────────────────────────────────────┐
+│              RESULTS AGGREGATION & STORAGE                          │
+│  - Store submission history (DB)                                   │
+│  - Calculate acceptance rate, runtime percentile                   │
+│  - Update user stats (problems solved, streak count)               │
+└────────────────────────────────────────────────────────────────────┘
+
+┌────────────────────────────────────────────────────────────────────┐
+│                      OBSERVABILITY & MONITORING                     │
+│  - Logs: Winston/Bunyan (upload, validation, test runs)           │
+│  - Metrics: Prometheus (upload failures, test pass rate)           │
+│  - Alerts: PagerDuty/Slack (validation errors > 10%, runner down)  │
+└────────────────────────────────────────────────────────────────────┘
+
+┌────────────────────────────────────────────────────────────────────┐
+│                       CDN & CACHING LAYER                           │
+│  - CloudFront/Cloudflare (problem statements, templates)           │
+│  - Redis (leaderboard, today's streak question)                    │
+└────────────────────────────────────────────────────────────────────┘
+API Endpoints Summary
+
+HTTP Verb	Path	Payload	Response	Auth
+POST	/api/practice/admin/upload-problems	{ problems: [], replaceExisting: bool }	{ success: [], failed: [], skipped: [] }	Admin
+POST	/api/streak/admin/daily	{ date: "YYYY-MM-DD", questions: [] }	{ success: true, count: 5 }	Admin
+GET	/api/practice/admin/problems/all	-	{ problems: [] }	Admin
+POST	/api/practice/admin/validate	{ json: object }	{ valid: bool, errors: [], warnings: [] }	Admin
+GET	/api/practice/admin/preview/:id	-	{ rendered: HTML, sampleRun: { output, expected } }	Admin
+POST	/api/practice/admin/publish/:id	{ id: string }	{ published: bool }	Admin
+POST	/api/practice/admin/rollback/:id	{ id: string, version: int }	{ success: bool }	Admin
+GET	/api/practice/problems	?difficulty=Easy&topic=Arrays	{ problems: [], total: int }	User
+GET	/api/practice/problems/:id	-	{ problem: object }	User
+POST	/api/practice/problems/:id/submit	{ code: string, language: string }	{ testResults: [], allPassed: bool }	User
+GET	/api/streak/today	-	{ question: object }	User
+POST	/api/streak/submit	{ code: string, language: string, questionId: string }	{ testResults: [], allPassed: bool }	User
+2. JSON SCHEMAS (STRICT, JSON SCHEMA DRAFT-07)
+2.1 Practice Problems Schema
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://yourplatform.com/schemas/practice-problems.json",
+  "title": "Practice Problems Upload Schema",
+  "type": "object",
+  "required": ["problems"],
+  "properties": {
+    "problems": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 100,
+      "items": {
+        "$ref": "#/definitions/problem"
+      }
+    }
+  },
+  "definitions": {
+    "problem": {
+      "type": "object",
+      "required": [
+        "title",
+        "description",
+        "difficulty",
+        "topic",
+        "functionSignature",
+        "codeTemplate",
+        "testCases"
+      ],
+      "properties": {
+        "title": {
+          "type": "string",
+          "minLength": 3,
+          "maxLength": 100,
+          "description": "Problem title (2-5 words preferred)"
+        },
+        "description": {
+          "type": "string",
+          "minLength": 20,
+          "maxLength": 5000,
+          "description": "Full problem statement"
+        },
+        "difficulty": {
+          "type": "string",
+          "enum": ["Easy", "Medium", "Hard"],
+          "description": "Exact casing required"
+        },
+        "topic": {
+          "type": "string",
+          "minLength": 2,
+          "maxLength": 50,
+          "description": "Category: Arrays, Strings, Trees, etc."
+        },
+        "constraints": {
+          "type": "string",
+          "maxLength": 1000,
+          "description": "Problem constraints (optional)"
+        },
+        "hints": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "maxLength": 500
+          },
+          "minItems": 0,
+          "maxItems": 5
+        },
+        "functionSignature": {
+          "$ref": "#/definitions/functionSignature"
+        },
+        "codeTemplate": {
+          "$ref": "#/definitions/codeTemplate"
+        },
+        "testCases": {
+          "type": "array",
+          "minItems": 2,
+          "maxItems": 50,
+          "items": {
+            "$ref": "#/definitions/testCase"
+          }
+        },
+        "tags": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "maxLength": 30
+          },
+          "maxItems": 10
+        },
+        "relatedProblems": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "maxItems": 5
+        }
+      },
+      "additionalProperties": false
+    },
+    "functionSignature": {
+      "type": "object",
+      "required": ["name", "params", "returnType"],
+      "properties": {
+        "name": {
+          "type": "string",
+          "pattern": "^[a-zA-Z_][a-zA-Z0-9_]*$",
+          "minLength": 1,
+          "maxLength": 50,
+          "description": "Valid function name (camelCase or snake_case)"
+        },
+        "params": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "pattern": "^[a-zA-Z_][a-zA-Z0-9_]*$"
+          },
+          "minItems": 0,
+          "maxItems": 10,
+          "description": "Parameter names"
+        },
+        "returnType": {
+          "type": "string",
+          "enum": [
+            "int",
+            "long",
+            "float",
+            "double",
+            "string",
+            "bool",
+            "void",
+            "int[]",
+            "long[]",
+            "string[]",
+            "double[]",
+            "bool[]",
+            "int[][]",
+            "string[][]",
+            "ListNode",
+            "TreeNode"
+          ],
+          "description": "Canonical return type (see mapping table)"
+        }
+      },
+      "additionalProperties": false
+    },
+    "codeTemplate": {
+      "type": "object",
+      "required": ["javascript", "python", "java", "cpp"],
+      "properties": {
+        "javascript": {
+          "type": "string",
+          "minLength": 10,
+          "maxLength": 5000
+        },
+        "python": {
+          "type": "string",
+          "minLength": 10,
+          "maxLength": 5000
+        },
+        "java": {
+          "type": "string",
+          "minLength": 10,
+          "maxLength": 5000
+        },
+        "cpp": {
+          "type": "string",
+          "minLength": 10,
+          "maxLength": 5000
+        }
+      },
+      "additionalProperties": false
+    },
+    "testCase": {
+      "type": "object",
+      "required": ["input", "expectedOutput", "isHidden"],
+      "properties": {
+        "input": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 10000,
+          "description": "Single string containing all params (see parsing rules)"
+        },
+        "expectedOutput": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 10000,
+          "description": "Expected output as string (will be parsed for comparison)"
+        },
+        "explanation": {
+          "type": "string",
+          "maxLength": 500
+        },
+        "isHidden": {
+          "type": "boolean",
+          "description": "Hidden test cases not shown to user before submission"
+        }
+      },
+      "additionalProperties": false
+    }
+  }
+}
+2.2 Streak Questions Schema
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://yourplatform.com/schemas/streak-questions.json",
+  "title": "Streak Questions Daily Upload Schema",
+  "type": "object",
+  "required": ["date", "questions"],
+  "properties": {
+    "date": {
+      "type": "string",
+      "format": "date",
+      "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
+      "description": "Release date (YYYY-MM-DD) in UTC"
+    },
+    "questions": {
+      "type": "array",
+      "minItems": 5,
+      "maxItems": 5,
+      "items": {
+        "$ref": "#/definitions/streakQuestion"
+      },
+      "description": "Exactly 5 questions (Level 1=Easy, 2=Mid-Easy, 3=Medium, 4=Hard, 5=Mix)"
+    }
+  },
+  "definitions": {
+    "streakQuestion": {
+      "type": "object",
+      "required": [
+        "title",
+        "description",
+        "constraints",
+        "functionSignature",
+        "testCases"
+      ],
+      "properties": {
+        "title": {
+          "type": "string",
+          "minLength": 3,
+          "maxLength": 100
+        },
+        "description": {
+          "type": "string",
+          "minLength": 20,
+          "maxLength": 3000
+        },
+        "constraints": {
+          "type": "string",
+          "minLength": 5,
+          "maxLength": 1000
+        },
+        "hints": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "maxLength": 300
+          },
+          "minItems": 0,
+          "maxItems": 3
+        },
+        "functionSignature": {
+          "type": "object",
+          "required": ["name", "params", "returnType"],
+          "properties": {
+            "name": {
+              "type": "string",
+              "pattern": "^[a-zA-Z_][a-zA-Z0-9_]*$"
+            },
+            "params": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "pattern": "^[a-zA-Z_][a-zA-Z0-9_]*$"
+              },
+              "minItems": 0,
+              "maxItems": 5
+            },
+            "returnType": {
+              "type": "string",
+              "enum": [
+                "int",
+                "long",
+                "string",
+                "bool",
+                "void",
+                "int[]",
+                "string[]",
+                "double",
+                "double[]"
+              ]
+            }
+          },
+          "additionalProperties": false
+        },
+        "codeTemplate": {
+          "type": "object",
+          "description": "Optional for streak; if omitted, auto-generated",
+          "properties": {
+            "javascript": { "type": "string" },
+            "python": { "type": "string" },
+            "java": { "type": "string" },
+            "cpp": { "type": "string" }
+          }
+        },
+        "testCases": {
+          "type": "array",
+          "minItems": 2,
+          "maxItems": 20,
+          "items": {
+            "type": "object",
+            "required": ["input", "expectedOutput", "isHidden"],
+            "properties": {
+              "input": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 5000
+              },
+              "expectedOutput": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 5000
+              },
+              "explanation": {
+                "type": "string",
+                "maxLength": 300
+              },
+              "isHidden": {
+                "type": "boolean"
+              }
+            },
+            "additionalProperties": false
+          }
+        }
+      },
+      "additionalProperties": false
+    }
+  }
+}
+3. CANONICAL RETURNTYPE MAPPING TABLE
+Critical Rule: NEVER use ambiguous tokens like "array", "list", "number[]" without type prefix.
+returnType Token	JavaScript	Python	Java	C++	Notes
+int	number	int	int	int	Single integer
+long	number	int	long	long long	Large integer
+float	number	float	float	float	Single precision
+double	number	float	double	double	Double precision
+string	string	str	String	string	Single string
+bool	boolean	bool	boolean	bool	Boolean
+void	void	None	void	void	No return
+int[]	number[]	List[int]	int[]	vector<int>	Array of integers
+long[]	number[]	List[int]	long[]	vector<long long>	Array of longs
+string[]	string[]	List[str]	String[]	vector<string>	Array of strings
+double[]	number[]	List[float]	double[]	vector<double>	Array of doubles
+bool[]	boolean[]	List[bool]	boolean[]	vector<bool>	Array of booleans
+int[][]	number[][]	List[List[int]]	int[][]	vector<vector<int>>	2D array of integers
+string[][]	string[][]	List[List[str]]	String[][]	vector<vector<string>>	2D array of strings
+ListNode	ListNode	ListNode	ListNode	ListNode*	Custom linked list node
+TreeNode	TreeNode	TreeNode	TreeNode	TreeNode*	Custom tree node
+Why "array" is Forbidden
+
+// ❌ WRONG - This breaks Java compilation:
+{
+  "returnType": "array"  // What type of array???
+}
+
+// Java compiler needs explicit type:
+public array twoSum(int[] nums) { ... }  // ❌ "array" is not a valid Java type
+
+// ✅ CORRECT:
+{
+  "returnType": "int[]"
+}
+public int[] twoSum(int[] nums, int target) { ... }  // ✅ Valid
+
+Migration Script for Legacy "array" Problems
+```
+
+```javascript
+// migration-script.js
+const fs = require('fs');
+
+function migrateReturnType(jsonFile) {
+  const data = JSON.parse(fs.readFileSync(jsonFile, 'utf8'));
+  
+  data.problems.forEach(problem => {
+    if (problem.functionSignature.returnType === 'array') {
+      // Infer from codeTemplate
+      const javaTemplate = problem.codeTemplate.java;
+      const returnMatch = javaTemplate.match(/public\s+(\w+\[\])\s+\w+\(/);
+      
+      if (returnMatch) {
+        problem.functionSignature.returnType = returnMatch[1]; // e.g., "int[]"
+        console.log(`✅ Migrated ${problem.title}: "array" → "${returnMatch[1]}"`);
+      } else {
+        console.warn(`⚠️  Could not infer returnType for ${problem.title}, defaulting to "int[]"`);
+        problem.functionSignature.returnType = 'int[]';
+      }
+    }
+  });
+  
+  fs.writeFileSync(jsonFile, JSON.stringify(data, null, 2));
+  console.log(`✅ Migration complete: ${jsonFile}`);
+}
+
+// Usage: node migration-script.js practice-problems.json
+migrateReturnType(process.argv[2]);
+```
+4. UPLOADER/VALIDATOR BEHAVIOR
+Validation Pipeline (Sequential)
+Upload JSON
+    ↓
+┌─────────────────────────────────────┐
+│ 1. Syntactic Validation (JSON)      │  ← Fast fail (< 10ms)
+│    - Valid JSON?                    │
+│    - Schema conformance (ajv)?      │
+└─────────────────────────────────────┘
+    ↓ PASS
+┌─────────────────────────────────────┐
+│ 2. Business Rules Validation        │  ← Semantic checks (< 500ms)
+│    - Unique titles?                 │
+│    - No duplicate test inputs?      │
+│    - returnType in allowed set?     │
+│    - Param count matches templates? │
+└─────────────────────────────────────┘
+    ↓ PASS
+┌─────────────────────────────────────┐
+│ 3. Template Linter (Syntax Check)   │  ← Compile-time checks (< 2s)
+│    - Java: javac -Xlint            │
+│    - C++: g++ -fsyntax-only        │
+│    - Python: ast.parse()           │
+│    - JS: esprima / acorn           │
+│    - Match function signature?     │
+└─────────────────────────────────────┘
+    ↓ PASS
+┌─────────────────────────────────────┐
+│ 4. Warnings & Suggestions           │  ← Non-blocking (< 100ms)
+│    - Escaped quotes in testCases?  │
+│    - Missing hints?                │
+│    - Unclear descriptions?         │
+└─────────────────────────────────────┘
+    ↓
+┌─────────────────────────────────────┐
+│ 5. Store to Staging DB + S3        │
+│    Status: DRAFT                    │
+└─────────────────────────────────────┘
+Implementation (Node.js Example)// validator.js
+const Ajv = require('ajv');
+const addFormats = require('ajv-formats');
+const fs = require('fs');
+
+const ajv = new Ajv({ allErrors: true, strict: true });
+addFormats(ajv);
+
+const practiceProblemSchema = JSON.parse(
+  fs.readFileSync('./schemas/practice-problems.json', 'utf8')
+);
+const validatePracticeProblems = ajv.compile(practiceProblemSchema);
+
+/**
+ * Validate uploaded JSON
+ * @param {object} data - Parsed JSON
+ * @returns {object} { valid: bool, errors: [], warnings: [] }
+ */
+function validateUpload(data) {
+  const result = {
+    valid: false,
+    errors: [],
+    warnings: []
+  };
+
+  // Step 1: Schema validation
+  const schemaValid = validatePracticeProblems(data);
+  if (!schemaValid) {
+    result.errors = validatePracticeProblems.errors.map(err => ({
+      field: err.instancePath || 'root',
+      message: err.message,
+      value: err.data,
+      suggestion: getSuggestion(err)
+    }));
+    return result;
+  }
+
+  // Step 2: Business rules
+  const businessErrors = validateBusinessRules(data);
+  if (businessErrors.length > 0) {
+    result.errors.push(...businessErrors);
+    return result;
+  }
+
+  // Step 3: Template linter
+  const lintErrors = lintCodeTemplates(data);
+  if (lintErrors.length > 0) {
+    result.errors.push(...lintErrors);
+    return result;
+  }
+
+  // Step 4: Warnings
+  result.warnings = generateWarnings(data);
+  result.valid = true;
+
+  return result;
+}
+
+function validateBusinessRules(data) {
+  const errors = [];
+  const titles = new Set();
+  
+  data.problems.forEach((problem, idx) => {
+    // Unique titles
+    if (titles.has(problem.title)) {
+      errors.push({
+        field: `problems[${idx}].title`,
+        message: `Duplicate title: "${problem.title}"`,
+        suggestion: 'Ensure all problem titles are unique'
+      });
+    }
+    titles.add(problem.title);
+
+    // returnType consistency
+    const { returnType, params } = problem.functionSignature;
+    const allowedReturnTypes = ['int', 'long', 'string', 'bool', 'void', 'int[]', 'long[]', 'string[]', 'double[]', 'bool[]', 'int[][]', 'string[][]', 'ListNode', 'TreeNode'];
+    
+    if (!allowedReturnTypes.includes(returnType)) {
+      errors.push({
+        field: `problems[${idx}].functionSignature.returnType`,
+        message: `Invalid returnType: "${returnType}"`,
+        suggestion: `Use one of: ${allowedReturnTypes.join(', ')}`
+      });
+    }
+
+    // Test case input validation
+    problem.testCases.forEach((tc, tcIdx) => {
+      // Check for escaped quotes (likely error)
+      if (tc.input.includes('\\"') || (tc.input.startsWith('"') && tc.input.endsWith('"'))) {
+        errors.push({
+          field: `problems[${idx}].testCases[${tcIdx}].input`,
+          message: `Test case input contains escaped quotes or extra outer quotes`,
+          suggestion: `Remove outer quotes. Example: "[2,7,11,15], 9" NOT "\\"[2,7,11,15]\\", 9"`
+        });
+      }
+    });
+
+    // Param count vs template check
+    const expectedParamCount = params.length;
+    const javaTemplate = problem.codeTemplate.java;
+    const javaParamMatch = javaTemplate.match(/public\s+\w+(\[\])?\s+\w+\((.*?)\)/);
+    if (javaParamMatch) {
+      const javaParams = javaParamMatch[2].split(',').filter(p => p.trim());
+      if (javaParams.length !== expectedParamCount) {
+        errors.push({
+          field: `problems[${idx}].codeTemplate.java`,
+          message: `Java template has ${javaParams.length} params but functionSignature declares ${expectedParamCount}`,
+          suggestion: 'Ensure param count matches across all templates'
+        });
+      }
+    }
+  });
+
+  return errors;
+}
+
+function lintCodeTemplates(data) {
+  const errors = [];
+  
+  data.problems.forEach((problem, idx) => {
+    const { name: funcName, returnType, params } = problem.functionSignature;
+    
+    // Java lint
+    const javaCode = problem.codeTemplate.java;
+    if (!javaCode.includes('class Solution')) {
+      errors.push({
+        field: `problems[${idx}].codeTemplate.java`,
+        message: 'Java template must contain "class Solution"',
+        suggestion: 'Wrap method in: class Solution { ... }'
+      });
+    }
+    
+    // Check Java method signature
+    const expectedJavaReturn = mapReturnTypeToJava(returnType);
+    const javaMethodRegex = new RegExp(`public\\s+${expectedJavaReturn.replace('[', '\\[').replace(']', '\\]')}\\s+${funcName}\\(`);
+    if (!javaMethodRegex.test(javaCode)) {
+      errors.push({
+        field: `problems[${idx}].codeTemplate.java`,
+        message: `Java method signature does not match. Expected: "public ${expectedJavaReturn} ${funcName}(...)"`,
+        suggestion: `Update Java template to match returnType "${returnType}"`
+      });
+    }
+
+    // Python lint
+    const pythonCode = problem.codeTemplate.python;
+    const pythonDefRegex = new RegExp(`def\\s+${funcName}\\(`);
+    const pythonClassMethodRegex = new RegExp(`def\\s+${funcName}\\(self`);
+    if (!pythonDefRegex.test(pythonCode) && !pythonClassMethodRegex.test(pythonCode)) {
+      errors.push({
+        field: `problems[${idx}].codeTemplate.python`,
+        message: `Python template missing function definition "def ${funcName}(...)"`
+      });
+    }
+
+    // JS lint
+    const jsCode = problem.codeTemplate.javascript;
+    const jsFuncRegex = new RegExp(`function\\s+${funcName}\\(|const\\s+${funcName}\\s*=`);
+    const jsMethodRegex = new RegExp(`${funcName}\\(`);
+    if (!jsFuncRegex.test(jsCode) && !jsMethodRegex.test(jsCode)) {
+      errors.push({
+        field: `problems[${idx}].codeTemplate.javascript`,
+        message: `JavaScript template missing function "${funcName}"`
+      });
+    }
+
+    // C++ lint
+    const cppCode = problem.codeTemplate.cpp;
+    const expectedCppReturn = mapReturnTypeToCpp(returnType);
+    const cppMethodRegex = new RegExp(`${expectedCppReturn.replace('[', '\\[').replace(']', '\\]').replace('<', '\\<').replace('>', '\\>')}\\s+${funcName}\\(`);
+    if (!cppMethodRegex.test(cppCode)) {
+      errors.push({
+        field: `problems[${idx}].codeTemplate.cpp`,
+        message: `C++ method signature does not match. Expected: "${expectedCppReturn} ${funcName}(...)"`
+      });
+    }
+  });
+
+  return errors;
+}
+
+function generateWarnings(data) {
+  const warnings = [];
+  
+  data.problems.forEach((problem, idx) => {
+    if (!problem.hints || problem.hints.length === 0) {
+      warnings.push({
+        field: `problems[${idx}].hints`,
+        message: 'No hints provided',
+        suggestion: 'Consider adding 2-3 hints for better user experience'
+      });
+    }
+
+    if (problem.description.length < 100) {
+      warnings.push({
+        field: `problems[${idx}].description`,
+        message: 'Description seems short',
+        suggestion: 'Provide more context and examples'
+      });
+    }
+
+    // Check for visible test cases
+    const visibleTests = problem.testCases.filter(tc => !tc.isHidden);
+    if (visibleTests.length < 2) {
+      warnings.push({
+        field: `problems[${idx}].testCases`,
+        message: 'Only 1 visible test case',
+        suggestion: 'Provide at least 2 visible examples for clarity'
+      });
+    }
+  });
+
+  return warnings;
+}
+
+function mapReturnTypeToJava(returnType) {
+  const mapping = {
+    'int': 'int',
+    'long': 'long',
+    'string': 'String',
+    'bool': 'boolean',
+    'void': 'void',
+    'int[]': 'int[]',
+    'long[]': 'long[]',
+    'string[]': 'String[]',
+    'double[]': 'double[]',
+    'bool[]': 'boolean[]',
+    'int[][]': 'int[][]',
+    'string[][]': 'String[][]',
+    'ListNode': 'ListNode',
+    'TreeNode': 'TreeNode'
+  };
+  return mapping[returnType] || 'int';
+}
+
+function mapReturnTypeToCpp(returnType) {
+  const mapping = {
+    'int': 'int',
+    'long': 'long long',
+    'string': 'string',
+    'bool': 'bool',
+    'void': 'void',
+    'int[]': 'vector<int>',
+    'long[]': 'vector<long long>',
+    'string[]': 'vector<string>',
+    'double[]': 'vector<double>',
+    'bool[]': 'vector<bool>',
+    'int[][]': 'vector<vector<int>>',
+    'string[][]': 'vector<vector<string>>',
+    'ListNode': 'ListNode*',
+    'TreeNode': 'TreeNode*'
+  };
+  return mapping[returnType] || 'int';
+}
+
+function getSuggestion(error) {
+  if (error.keyword === 'enum') {
+    return `Allowed values: ${error.params.allowedValues.join(', ')}`;
+  }
+  if (error.keyword === 'required') {
+    return `Missing required field: ${error.params.missingProperty}`;
+  }
+  if (error.keyword === 'type') {
+    return `Expected type: ${error.params.type}`;
+  }
+  return 'Check the schema documentation';
+}
+
+module.exports = { validateUpload };
+
+5. TEST CASE RUNNER SPECIFICATION
+Execution Flow (Per Submission)
+User submits code
+    ↓
+┌──────────────────────────────────────────────┐
+│ 1. Fetch problem metadata (functionSignature,│
+│    testCases, returnType)                    │
+└──────────────────────────────────────────────┘
+    ↓
+┌──────────────────────────────────────────────┐
+│ 2. Wrap user code with test harness         │
+│    (See Section 6: Parsing Rules)           │
+│    - Inject test input parsing               │
+│    - Inject result serialization             │
+└──────────────────────────────────────────────┘
+    ↓
+┌──────────────────────────────────────────────┐
+│ 3. Compile (if needed)                       │
+│    Java: javac Solution.java                │
+│    C++: g++ solution.cpp -o solution         │
+│    Python/JS: Skip (interpreted)             │
+└──────────────────────────────────────────────┘
+    ↓ If compile errors
+    ├─────────────────────────────────────────→ Return compile error
+    ↓ Else
+┌──────────────────────────────────────────────┐
+│ 4. Execute in Docker container (per test)   │
+│    - Container: per-language image           │
+│    - Input: Pass testCase.input via stdin   │
+│    - Timeout: 5s per test                   │
+│    - Memory: 128MB limit                    │
+│    - CPU: 0.5 core limit                    │
+│    - Network: Disabled (--network=none)     │
+└──────────────────────────────────────────────┘
+    ↓
+┌──────────────────────────────────────────────┐
+│ 5. Capture stdout, stderr, exitCode         │
+└──────────────────────────────────────────────┘
+    ↓
+┌──────────────────────────────────────────────┐
+│ 6. Compare output vs expectedOutput         │
+│    - Normalize whitespace                   │
+│    - Parse JSON for arrays/objects          │
+│    - Order-insensitive for sets?            │
+└──────────────────────────────────────────────┘
+    ↓
+┌──────────────────────────────────────────────┐
+│ 7. Aggregate results                         │
+│    { testResults: [                          │
+│       { passed: bool, input, output,         │
+│         expected, runtime, error }           │
+│    ], allPassed: bool }                      │
+└──────────────────────────────────────────────┘
+Docker Sandbox Configuration# docker-compose.yml for runner service
+version: '3.8'
+services:
+  runner-service:
+    build: ./runner
+    environment:
+      - MAX_CONCURRENT_RUNS=10
+      - DEFAULT_TIMEOUT=5
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock  # Docker-in-Docker
+    networks:
+      - runner-network
+    deploy:
+      resources:
+        limits:
+          cpus: '2.0'
+          memory: 4G
+
+Security Policies (seccomp profile){
+  "defaultAction": "SCMP_ACT_ERRNO",
+  "architectures": ["SCMP_ARCH_X86_64"],
+  "syscalls": [
+    { "names": ["read", "write", "open", "close", "stat", "fstat", "mmap", "munmap", "brk", "exit_group"], "action": "SCMP_ACT_ALLOW" },
+    { "names": ["execve"], "action": "SCMP_ACT_ALLOW" },
+    { "names": ["socket", "connect", "bind", "accept"], "action": "SCMP_ACT_ERRNO" }
+  ]
+}
+Compile-Time Error Mapping
+// errorParser.js
+function parseCompileError(stderr, language) {
+  if (language === 'java') {
+    // Example Java error:
+    // "Solution.java:5: error: ';' expected"
+    const match = stderr.match(/Solution\.java:(\d+):\s*error:\s*(.+)/);
+    if (match) {
+      return {
+        line: parseInt(match[1]),
+        message: match[2],
+        type: 'CompileError',
+        suggestion: 'Check syntax at line ' + match[1]
+      };
+    }
+  }
+  
+  if (language === 'cpp') {
+    // Example C++ error:
+    // "solution.cpp:7:5: error: expected ';' before 'return'"
+    const match = stderr.match(/solution\.cpp:(\d+):(\d+):\s*error:\s*(.+)/);
+    if (match) {
+      return {
+        line: parseInt(match[1]),
+        column: parseInt(match[2]),
+        message: match[3],
+        type: 'CompileError'
+      };
+    }
+  }
+
+  if (language === 'python') {
+    // Example Python error:
+    // "  File "solution.py", line 7\n    return result\n    ^\nSyntaxError: invalid syntax"
+    const match = stderr.match(/File "solution\.py", line (\d+)/);
+    if (match) {
+      return {
+        line: parseInt(match[1]),
+        message: stderr.split('\n').pop(),
+        type: 'SyntaxError'
+      };
+    }
+  }
+
+  // Generic fallback
+  return {
+    message: stderr,
+    type: 'CompileError'
+  };
+}
+
+module.exports = { parseCompileError };
+Output Comparison (Normalization)// outputComparator.js
+
+/**
+ * Compare actual output vs expected output
+ * @param {string} actual - stdout from test run
+ * @param {string} expected - expectedOutput from testCase
+ * @param {string} returnType - return type for smart comparison
+ * @returns {boolean} - true if match
+ */
+function compareOutputs(actual, expected, returnType) {
+  // Normalize whitespace
+  const normActual = actual.trim();
+  const normExpected = expected.trim();
+
+  // Exact string match
+  if (normActual === normExpected) return true;
+
+  // Try JSON parsing for arrays/objects
+  try {
+    const actualParsed = JSON.parse(normActual);
+    const expectedParsed = JSON.parse(normExpected);
+
+    // For arrays, compare order-sensitive by default
+    if (Array.isArray(actualParsed) && Array.isArray(expectedParsed)) {
+      if (returnType.includes('[][]')) {
+        // 2D array: deep compare
+        return deepEqual(actualParsed, expectedParsed);
+      }
+      return arraysEqual(actualParsed, expectedParsed);
+    }
+
+    // Objects: deep compare
+    return deepEqual(actualParsed, expectedParsed);
+  } catch {
+    // Not JSON, fall back to string comparison
+  }
+
+  // Case-insensitive for booleans
+  if (returnType === 'bool') {
+    return normActual.toLowerCase() === normExpected.toLowerCase();
+  }
+
+  // Floating point comparison (tolerance 1e-6)
+  if (returnType === 'double' || returnType === 'float') {
+    const actualNum = parseFloat(normActual);
+    const expectedNum = parseFloat(normExpected);
+    return Math.abs(actualNum - expectedNum) < 1e-6;
+  }
+
+  return false;
+}
+
+function arraysEqual(a, b) {
+  if (a.length !== b.length) return false;
+  for (let i = 0; i < a.length; i++) {
+    if (Array.isArray(a[i]) && Array.isArray(b[i])) {
+      if (!arraysEqual(a[i], b[i])) return false;
+    } else if (a[i] !== b[i]) {
+      return false;
+    }
+  }
+  return true;
+}
+
+function deepEqual(a, b) {
+  return JSON.stringify(a) === JSON.stringify(b);
+}
+
+module.exports = { compareOutputs };
+
+Time & Memory Limits
+Language	Compile Timeout	Run Timeout (per test)	Memory Limit	CPU Limit
+JavaScript	N/A	5s	128MB	0.5 cores
+Python	N/A	5s	128MB	0.5 cores
+Java	10s	5s	256MB	0.5 cores
+C++	10s	5s	128MB	0.5 cores
+Retry Policy
+Compile errors: No retry (deterministic)
+Runtime errors: No retry (deterministic)
+Timeout: Retry once (in case of system load)
+Internal errors (Docker crash): Retry up to 2 times

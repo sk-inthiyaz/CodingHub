@@ -42,17 +42,18 @@ const practiceProblemSchema = new mongoose.Schema({
     },
     // Function signature for code execution
     functionSignature: {
-        name: {
-            type: String,
-            default: 'solution'
-        },
-        params: [{
-            name: String,
-            type: String // 'int', 'int[]', 'string', 'int[][]', etc.
-        }],
+        name: { type: String, default: 'solution' },
+        // Accept array of strings or objects; store raw
+        params: { type: Array, default: [] },
         returnType: {
             type: String,
-            default: 'any'
+            required: true,
+            enum: [
+                'int','long','float','double','string','boolean',
+                'int[]','long[]','float[]','double[]','string[]','boolean[]',
+                'int[][]','string[][]',
+                'ListNode','TreeNode'
+            ]
         }
     },
     // Test cases for validation

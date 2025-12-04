@@ -5,7 +5,7 @@ import "./ChatWindow.css";
 function isPlainMessage(content) {
   return (
     content.trim().startsWith("👋 Hi! I'm a code explainer bot.") ||
-    content.trim() === "This is an AI Code Explainer. Please enter code to get an explanation."
+    content.trim() === "This is AI Coding Assistance . Please enter code to get an explanation."
   );
 }
 
