@@ -3,6 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "homepage": "https://sk-inthiyaz.github.io/ai-code-explainer",
+  "homepage": "https://sk-inthiyaz.github.io/CodingHub",
   "dependencies": {
     "@heroicons/react": "^2.2.0",
     "@monaco-editor/react": "^4.7.0",
