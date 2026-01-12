@@ -40,17 +40,30 @@
 .chat-wrapper-fixed {
   width: 85%;
   max-width: 1100px;
-  margin: 25px auto;
-  background: rgba(255, 255, 255, 0.98);
-  border-radius: 16px;
-  border: 1px solid rgba(203, 213, 225, 0.3);
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08);
+  margin: 25px auto 0 auto; /* Removed bottom margin */
+  
+  /* MONITOR BEZEL: Silver/Metallic Look */
+  background: #d4d4d8; 
+  padding: 16px; /* Bezel Thickness */
+  
+  /* Only top corners rounded */
+  border-radius: 16px 16px 0 0;
+  border: 1px solid #a1a1aa;
+  border-bottom: none; /* Seamless connection */
+  
+  /* Monitor Shadow (Depth) */
+  box-shadow: 
+    0 0 0 1px rgba(0, 0, 0, 0.05), /* Subtle stroke */
+    inset 0 1px 0 rgba(255, 255, 255, 0.6); /* Top shiny highlight */
+
   display: flex;
   flex-direction: column;
   overflow: hidden;
-  height: 85vh; /* Increased from 75vh */
-  min-height: 600px; /* Increased from 550px */
+  height: 85vh; 
+  min-height: 600px; 
   transition: 0.2s ease;
+  position: relative;
+  z-index: 20;
 }
 
 .chat-wrapper-fixed:hover {
@@ -59,31 +72,60 @@
 }
 
 /* ------------------------------------
-   CHAT WINDOW AREA
+   CHAT WINDOW AREA (The Screen)
 ------------------------------------ */
 
 .chat-box-fixed {
-  flex: 1; /* Already flex 1, but ensuring it takes available space */
-  min-height: 400px; /* Minimum height ensures at least this much space */
+  flex: 1;
+  min-height: 400px;
   padding: 30px 40px;
-  background: #fafbfc;
+  
+  /* SCREEN BACKGROUND: Soft blue-gray tint (like a modern LCD off-state or clean UI) */
+  background: linear-gradient(180deg, #f8fafc 0%, #f1f5f9 100%);
+  
+  /* Screen inset shadow (inner bezel depth) */
+  box-shadow: inset 0 2px 10px rgba(0,0,0,0.05);
+  
   overflow-y: auto;
   display: flex;
   flex-direction: column;
   gap: 18px;
+  
+  /* Screen corners slightly rounded inside the bezel */
+  border-radius: 4px; 
+  border: 1px solid #cbd5e1;
 }
 
 /* ------------------------------------
-   INPUT AREA (keyboard style)
+   INPUT AREA (The Keyboard)
 ------------------------------------ */
 
 .input-box-fixed {
-  background: #ffffff;
-  border-top: 1px solid rgba(203, 213, 225, 0.4);
+  margin-top: 0; /* REMOVED GAP */
+  width: 85%;
+  max-width: 1100px;
+  
+  /* KEYBOARD CHASSIS - Attached to monitor */
+  background: linear-gradient(135deg, #e2e8f0 0%, #cbd5e1 100%);
+  border: 1px solid #a1a1aa; /* Match bezel color */
+  border-top: none; /* Seamless connection */
+  
+  /* Only bottom corners rounded */
+  border-radius: 0 0 16px 16px; 
+  border-bottom-width: 6px; /* Thick bottom for 3D effect */
+  
+  /* Keyboard Depth Shadow */
+  box-shadow: 
+    0 10px 15px -3px rgba(0, 0, 0, 0.1),
+    0 4px 6px -2px rgba(0, 0, 0, 0.05),
+    inset 0 4px 6px rgba(0, 0, 0, 0.05); /* Top shadow from 'overhang' */
+    
   display: flex;
   flex-direction: column;
   gap: 14px;
-  padding: 20px 40px;
+  padding: 24px;
+  position: relative;
+  z-index: 10;
 }
 
 /* Clean textarea */
@@ -118,35 +160,40 @@
   gap: 16px;
   width: 100%;
   align-items: stretch;
-  background: #f8fafc; /* Lighter background */
-  border-radius: 14px;
-  padding: 16px;
-  border: 1px solid #e2e8f0;
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  background: transparent; /* Removed background, now handled by keyboard chassis */
+  border-radius: 0;
+  padding: 0;
+  border: none;
+  box-shadow: none;
 }
 
 .chatpage-textarea {
   flex-grow: 1;
   width: auto; 
   min-height: 120px; /* Increased height */
+  
+  /* KEYCAP STYLE TEXTAREA */
   background: #ffffff;
-  color: #1f2937; /* Dark text */
-  border-color: #cbd5e1;
+  color: #1f2937; 
+  border: 2px solid #cbd5e1;
+  border-bottom-width: 4px; /* Thick bottom for keycap 3D effect */
   border-radius: 8px;
   padding: 16px;
   line-height: 1.6;
   font-family: 'Inter', sans-serif;
-}
-
-.chatpage-textarea::placeholder {
-  color: #64748b; /* More visible placeholder */
-  font-weight: 500;
+  
+  /* Keycap Shadow */
+  box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+  transition: all 0.1s ease;
 }
 
 .chatpage-textarea:focus {
-  border-color: #3b82f6;
+  border-color: #10b981; /* Green accent */
+  border-bottom-color: #059669;
+  transform: translateY(1px); /* Slight press effect */
+  border-bottom-width: 3px;
   background: #ffffff;
-  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
+  box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.15); /* Green glow */
   outline: none;
 }
 
@@ -173,34 +220,44 @@
     linear-gradient(135deg, #64748b 50%, transparent 50%);
 }
 
-.mode-select option {
-  background: #ffffff;
-  color: #1f2937;
-}
-
-/* Send Button */
+.mode-select op- ENTER KEY Style */
 .sendbtn-fixed {
   padding: 0;
   height: 45px;
-  border-radius: 10px;
-  background: linear-gradient(135deg, #2563eb, #4f46e5);
+  border-radius: 8px;
+  
+  /* Enter Key Gradient */
+  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
   color: #fff;
+  
+  /* 3D Keycap Effect */
   border: none;
+  border-bottom: 4px solid #1e40af; /* Darker shade of blue for depth */
+  
   font-size: 16px;
-  font-weight: 600;
+  font-weight: 700;
+  letter-spacing: 0.5px;
   cursor: pointer;
-  transition: transform 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
+  transition: all 0.1s ease;
   white-space: nowrap;
   width: 100%;
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 10px 25px rgba(59, 130, 246, 0.5);
+  box-shadow: 0 4px 6px rgba(37, 99, 235, 0.3);
+  text-transform: uppercase;
 }
 
 .sendbtn-fixed:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 14px 30px rgba(59, 130, 246, 0.75);
+  transform: translateY(1px);
+  border-bottom-width: 3px;
+  background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+}
+
+.sendbtn-fixed:active {
+  transform: translateY(3px); /* Full press */
+  border-bottom-width: 1px;
+  box-shadow: 0 1px 2px rgba(37, 99, 235, 0.375);
 }
 
 .sendbtn-fixed:active {
