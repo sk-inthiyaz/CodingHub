@@ -109,8 +109,8 @@
 [data-theme="light"] .message-bubble.ai-bubble {
   background: #FFFFFF;
   color: #1F2937;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
-  border: 1px solid rgba(203, 213, 225, 0.4);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08); /* improved shadow */
+  border: 1px solid #e5e7eb; /* improved border */
   border-bottom-left-radius: 3px;
 }
 
@@ -162,9 +162,21 @@
 .ai-bubble .code-explanation pre {
   margin: 16px 0;
   padding: 16px;
-  background: #1a202c !important; /* Darker background for code blocks */
+  background: #1a202c !important; /* Always dark background for code blocks for better contrast */
   border-radius: 8px;
   border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* Override for lighter theme if needed, but keeping it dark usually looks better for code */
+[data-theme="light"] .ai-bubble .code-explanation pre {
+   background: #f1f5f9 !important; /* Light gray background for light mode */
+   border: 1px solid #cbd5e1;
+   color: #0f172a;
+}
+
+[data-theme="light"] .ai-bubble .code-explanation pre > div {
+   background: #f1f5f9 !important;
+   color: #0f172a !important; /* Ensure code text is dark in light mode */
 }
 
 .ai-bubble .code-explanation code {
