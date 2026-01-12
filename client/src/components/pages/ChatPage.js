@@ -270,7 +270,17 @@ Just ask me anything about coding! 🚀`
               <section className="chatpage-chatwindow chat-box chat-box-fixed">
                 <ChatWindow messages={messages} isLoading={isLoading} isDark={isDark} />
               </section>
-              <form className="input-box input-box-fixed" onSubmit={e => { e.preventDefault(); handleSend(); }}>
+            </div>
+            {/* Moved Input Box OUTSIDE the monitor wrapper to be the 'Keyboard' */}
+            <form className="input-box input-box-fixed" onSubmit={e => { e.preventDefault(); handleSend(); }}>
+                {/* 
+                  IMPORTANT: The input box is now OUTSIDE the monitor wrapper in the CSS 
+                  logic above, but here it is nested. To make the "Keyboard" separate
+                  from the "Monitor", we need to move this Form OUTSIDE main wrapper 
+                  or adjust standard CSS.
+                  
+                  Adjusted logic: We will keep DOM structure but use CSS to visually break them apart.
+                */}
                 <div className="input-row black-box">
                   <textarea
                     ref={textareaRef}
@@ -296,13 +306,11 @@ Just ask me anything about coding! 🚀`
                       className="chatpage-sendbtn sendbtn-fixed large-sendbtn"
                       aria-label="Send message"
                     >
-                      Send
+                      ENTER ↵
                     </button>
                   </div>
                 </div>
               </form>
-            </div>
-            <div className="monitor-stand"></div>
           </>
         )}
       </main>
