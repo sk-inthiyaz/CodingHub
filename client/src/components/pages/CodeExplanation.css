@@ -1,68 +1,84 @@
 /* CodeExplanation.css - Modern, readable markdown/code block styling */
 
 .code-explanation {
-  padding: 12px 14px;
-  border-radius: 14px;
-  box-shadow: 0 1px 6px rgba(0,0,0,0.07);
-  background: var(--chat-bg);
-  color: var(--text-color);
-  font-size: 1.01rem;
-  margin: 0;
-  word-break: break-word;
-  overflow-x: auto;
-  max-width: 100%;
-  box-sizing: border-box;
-  overflow-wrap: break-word;
-}
-
-.code-explanation pre, .code-explanation code {
-  font-family: 'Fira Mono', 'Consolas', 'Menlo', 'monospace';
-  font-size: 0.97em;
-  background: #e3eafe;
-  color: var(--text-color);
-  border-radius: 7px;
-  padding: 6px 8px;
-  overflow-x: auto;
-  margin: 2px 0 2px 0;
-  display: block;
-  max-width: 100%;
-  box-sizing: border-box;
-  word-break: break-word;
-}
-
-.code-explanation ul, .code-explanation ol {
-  margin: 0 0 0 1.1em;
-  padding: 0;
-}
-.code-explanation li {
-  margin-bottom: 0;
-  padding: 0;
+  padding: 24px;
+  border-radius: 12px;
+  background: transparent;
+  color: inherit;
+  font-size: 16px;
+  line-height: 1.7;
+  width: 100%;
 }
 
 .code-explanation h1, .code-explanation h2, .code-explanation h3 {
+  color: #60a5fa; /* Light blue for headings */
+  margin-top: 1.5em;
+  margin-bottom: 0.8em;
   font-weight: 700;
-  margin: 0 0 0.2em 0;
-  word-break: break-word;
-  padding: 0;
+  letter-spacing: -0.01em;
 }
 
-.code-explanation blockquote {
-  border-left: 3px solid #2563eb;
-  padding-left: 0.8em;
-  color: #6b7280;
-  margin: 0.2em 0;
-  font-style: italic;
-  word-break: break-word;
+.code-explanation h1:first-child, .code-explanation h2:first-child {
+  margin-top: 0;
 }
 
 .code-explanation p {
-  margin: 0 0 0.2em 0;
-  padding: 0;
+  margin-bottom: 1.2em;
+}
+
+.code-explanation ul, .code-explanation ol {
+  margin-bottom: 1.2em;
+  padding-left: 1.5em;
+}
+
+.code-explanation li {
+  margin-bottom: 0.5em;
+}
+
+.code-explanation blockquote {
+  border-left: 4px solid #3b82f6;
+  background: rgba(59, 130, 246, 0.1);
+  padding: 12px 16px;
+  border-radius: 0 8px 8px 0;
+  margin: 1.5em 0;
+  font-style: italic;
+}
+
+/* Code Snippets */
+.code-explanation code {
+  font-family: 'JetBrains Mono', 'Consolas', monospace;
+  background: rgba(0, 0, 0, 0.2);
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-size: 0.9em;
+  color: #93c5fd; /* Soft blue for inline code */
+}
+
+.code-explanation pre {
+  margin: 1.5em 0;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.code-explanation pre > div {
+  padding: 20px !important;
+  font-size: 14px !important;
+  line-height: 1.5 !important;
+  background: #111827 !important; /* Dark background for code blocks */
+}
+
+/* Ensure syntax highlighter overrides */
+.code-explanation pre code {
+  background: transparent !important;
+  padding: 0 !important;
+  color: inherit !important;
+  border-radius: 0 !important;
 }
 
 @media (max-width: 640px) {
   .code-explanation {
-    padding: 7px 2px;
-    font-size: 0.97rem;
+    padding: 16px;
+    font-size: 15px;
   }
 }
