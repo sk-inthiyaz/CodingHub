@@ -54,6 +54,12 @@
   color: #93c5fd; /* Soft blue for inline code */
 }
 
+[data-theme="light"] .code-explanation code {
+  background: #f3f4f6;
+  color: #1f2937;
+  border: 1px solid #e5e7eb;
+}
+
 .code-explanation pre {
   margin: 1.5em 0;
   border-radius: 8px;
