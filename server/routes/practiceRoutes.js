@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 const axios = require('axios');
 const PracticeProblem = require('../models/PracticeProblem');
-const { GEMINI_URL, API_KEY } = require('../config/geminiConfig');
+const { callGeminiAPI } = require('../utils/geminiHelper');
 const { auth } = require('../middleware/auth');
 const practiceController = require('../controllers/practiceController');
 const { validateProblemPayload, isAllowedReturnType } = require('../utils/validator');
@@ -393,10 +393,7 @@ router.post('/analyze', async (req, res) => {
         const { code } = req.body;
         console.log('[DEBUG] Analyzing code:', code);
 
-        const prompt = {
-            contents: [{
-                parts: [{
-                    text: `You are a code analysis expert. Analyze this code and provide feedback in JSON format.
+        const prompt = `You are a code analysis expert. Analyze this code and provide feedback in JSON format.
 
 Code to analyze:
 ${code}
@@ -410,23 +407,14 @@ Provide your analysis in this exact JSON format:
         "another specific improvement suggestion"
     ],
     "explanation": "A detailed explanation of the code's performance and areas for improvement"
-}`
-                }]
-            }]
-        };
+}`;
 
         console.log('[DEBUG] Sending request to Gemini API:', {
-            url: GEMINI_URL,
-            promptLength: JSON.stringify(prompt).length
+            promptLength: prompt.length
         });
         
-        const response = await axios.post(GEMINI_URL, prompt, {
-            headers: {
-                'Content-Type': 'application/json'
-            }
-        });
+        const responseText = await callGeminiAPI(prompt);
 
-        const responseText = response.data.candidates?.[0]?.content?.parts?.[0]?.text;
         if (!responseText) {
             throw new Error('Unexpected response format from Gemini API');
         }

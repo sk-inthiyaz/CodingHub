@@ -1,16 +1,17 @@
 const express = require("express");
-const axios = require("axios");
 const dotenv = require("dotenv");
+const { callGeminiAPI } = require("../utils/geminiHelper");
 
 dotenv.config();
 
 const router = express.Router();
 
-const API_KEY = process.env.GEMINI_API_KEY;
-const GEMINI_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${API_KEY}`;
-
 // Simple heuristic to check if input looks like code
 function isLikelyCode(input) {
+  // Allow natural language requests that ask for code generation or explanation
+  const intentKeywords = /(generate|create|write|explain|how|what|impl)/i;
+  if (intentKeywords.test(input)) return true;
+
   const codeIndicators = [
     /;/, // semicolons (common in JS, Java, C)
     /def |class |import |function /, // Python, JS
@@ -55,15 +56,7 @@ Here is the code to explain:
 
 ${code}`;
 
-    const response = await axios.post(GEMINI_URL, {
-      contents: [
-        {
-          parts: [{ text: prompt }],
-        },
-      ],
-    });
-
-    const explanation = response.data?.candidates?.[0]?.content?.parts?.[0]?.text;
+    const explanation = await callGeminiAPI(prompt);
 
     if (!explanation) {
       throw new Error("Invalid response from Gemini API");
