@@ -127,7 +127,7 @@ function App() {
 
     setIsLoading(true);
     try {
-      const res = await fetch("http://localhost:5000/api/explain", {
+      const res = await fetch(`${window.API_BASE_URL}/api/explain`, {
         method: "POST",
         headers: { 
           "Content-Type": "application/json",
@@ -158,7 +158,7 @@ function App() {
           <Navbar isDark={isDark} toggleDarkMode={toggleDarkMode} />
           <main>
             <Routes>
-              <Route path="/new-home" element={<ProjectHome />} />
+              <Route path="/" element={<ProjectHome />} />
               <Route path="/login" element={<Login />} />
               <Route path="/signup" element={<Signup />} />
               <Route path="/forgot-password" element={<ForgotPassword />} />
@@ -188,7 +188,7 @@ function App() {
                 }
               />
               <Route 
-                path="/" 
+                path="/chat" 
                 element={
                   <PrivateRoute>
                     <ChatPage 
