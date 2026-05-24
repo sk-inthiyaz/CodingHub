@@ -38,7 +38,7 @@ const ProblemsList = () => {
       queryParams.append('limit', filters.limit);
 
       const res = await fetch(
-        `http://localhost:5000/api/practice/problems?${queryParams}`,
+        `${window.API_BASE_URL}/api/practice/problems?${queryParams}`,
         {
           headers: { 'Authorization': `Bearer ${token}` }
         }
