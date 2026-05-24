@@ -29,7 +29,7 @@ const Navbar = ({ isDark, toggleDarkMode }) => {
   };
 
   const handleTitleClick = () => {
-    navigate('/new-home');
+    navigate('/');
   };
 
   const handleLogout = () => {
