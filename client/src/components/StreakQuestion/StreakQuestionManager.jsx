@@ -14,7 +14,7 @@ const StreakQuestionManager = () => {
   const fetchStreakQuestions = async () => {
     try {
       setLoading(true);
-      const response = await fetch('http://localhost:5000/api/streak/admin/questions', {
+      const response = await fetch(`${window.API_BASE_URL}/api/streak/admin/questions`, {
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('token')}`
         }
@@ -52,7 +52,7 @@ const StreakQuestionManager = () => {
     }
 
     try {
-      const response = await fetch(`http://localhost:5000/api/streak/admin/questions/${questionId}`, {
+      const response = await fetch(`${window.API_BASE_URL}/api/streak/admin/questions/${questionId}`, {
         method: 'DELETE',
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('token')}`
@@ -81,7 +81,7 @@ const StreakQuestionManager = () => {
       const [day, month, year] = date.split('/');
       const dateStr = `${year}-${month}-${day}`;
 
-      const response = await fetch(`http://localhost:5000/api/streak/admin/questions?date=${dateStr}`, {
+      const response = await fetch(`${window.API_BASE_URL}/api/streak/admin/questions?date=${dateStr}`, {
         method: 'DELETE',
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('token')}`
