@@ -29,7 +29,7 @@ const SolvePage = () => {
   const fetchToday = async () => {
     try {
       const token = localStorage.getItem('token');
-      const res = await fetch('http://localhost:5000/api/streak/today', {
+      const res = await fetch(`${window.API_BASE_URL}/api/streak/today`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       if (res.ok) {
@@ -67,7 +67,7 @@ const SolvePage = () => {
     
     try {
       const token = localStorage.getItem('token');
-      const res = await fetch('http://localhost:5000/api/streak/run', {
+      const res = await fetch(`${window.API_BASE_URL}/api/streak/run`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -102,7 +102,7 @@ const SolvePage = () => {
     
     try {
       const token = localStorage.getItem('token');
-      const res = await fetch('http://localhost:5000/api/streak/submit', {
+      const res = await fetch(`${window.API_BASE_URL}/api/streak/submit`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
