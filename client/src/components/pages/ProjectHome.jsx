@@ -29,7 +29,7 @@ function ProjectHome() {
             <div className="ph-hero-actions">
               <button
                 className="ph-btn ph-btn-primary"
-                onClick={() => navigate("/")}
+                onClick={() => navigate("/chat")}
               >
                 Open AI Coding Assistant
               </button>
@@ -150,94 +150,6 @@ function ProjectHome() {
                 <li>Admin dashboard for uploading and validating problems.</li>
                 <li>Debug guides for “questions not showing” and 500 errors.</li>
                 <li>Documentation index that explains every major module.</li>
-              </ul>
-            </div>
-          </div>
-        </section>
-        
-        {/* Section 3: Screens / cards for key flows */}
-        <section className="ph-section ph-screens-section" id="screens">
-          <div className="ph-screens-grid">
-            <article className="ph-screen-card">
-              <h3>Daily Streak Questions</h3>
-              <p>
-                A focused 5‑question flow powered by your streak engine.
-                Perfect for recruiters to see discipline and consistency.
-              </p>
-              <ul>
-                <li>Curated problems surfaced every day.</li>
-                <li>Visual streak timeline and history.</li>
-                <li>Designed to make “one day at a time” easy.</li>
-              </ul>
-            </article>
-
-            <article className="ph-screen-card">
-              <h3>Interactive Practice</h3>
-              <p>
-                A dedicated playground with problem lists, editor, and AI
-                feedback that mirrors real interview preparation.
-              </p>
-              <ul>
-                <li>Browse problems, open details, and code in the browser.</li>
-                <li>Request AI feedback on correctness and complexity.</li>
-                <li>Built on top of your Practice and LeetCode‑style flows.</li>
-              </ul>
-            </article>
-
-            <article className="ph-screen-card">
-              <h3>Admin, Settings & Profile</h3>
-              <p>
-                A full operational layer on top of the learning experience
-                so real users and admins can manage the system safely.
-              </p>
-              <ul>
-                <li>Admin upload flows for practice and streak questions.</li>
-                <li>Settings page for theme, preferences, and behaviour.</li>
-                <li>Profile view with progress, discussions, and history.</li>
-              </ul>
-            </article>
-          </div>
-        </section>
-
-        {/* Section 4: Why Coding Hub? (recruiter view) */}
-        <section className="ph-section ph-why-section" id="why">
-          <h2 className="ph-section-title">Why Coding Hub stands out for recruiters</h2>
-          <p className="ph-section-subtitle">
-            This isn&apos;t a demo toy. It&apos;s a small production system:
-            multiple routes, auth flows, admin tooling, and a deep
-            documentation set backing the UI.
-          </p>
-          <div className="ph-why-grid">
-            <div className="ph-why-card">
-              <h3>Solid Architecture</h3>
-              <ul>
-                <li>Clear separation between assistant, LearnHub, and admin tools.</li>
-                <li>React + React Router structure with private routes for auth.</li>
-                <li>JSON‑driven question banks for practice and streak modules.</li>
-              </ul>
-            </div>
-            <div className="ph-why-card">
-              <h3>Error‑Handling & Reliability</h3>
-              <ul>
-                <li>Dedicated 400/500 error guides and fix summaries.</li>
-                <li>Resilient chat history and delete flows for the assistant.</li>
-                <li>Dark mode and UI states tuned for real‑world usage.</li>
-              </ul>
-            </div>
-            <div className="ph-why-card">
-              <h3>Auth & User Experience</h3>
-              <ul>
-                <li>Login, signup, forgot password, and reset flows implemented.</li>
-                <li>Profile and settings pages that mirror SaaS patterns.</li>
-                <li>LearnHub routes that feel like a cohesive learning product.</li>
-              </ul>
-            </div>
-            <div className="ph-why-card">
-              <h3>Documentation Culture</h3>
-              <ul>
-                <li>Rich README and index files describing flows and decisions.</li>
-                <li>Admin and implementation guides for each major feature.</li>
-                <li>Perfect for recruiters to inspect how you think as an engineer.</li>
               </ul>
             </div>
           </div>
