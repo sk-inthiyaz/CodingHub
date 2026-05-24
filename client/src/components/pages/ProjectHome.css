@@ -15,32 +15,8 @@
   --ph-chip-bg: #0b1120;
 }
 
-/* Root layout */
-.ph-root {
-  min-height: 100vh;
-  background: var(--bg-gradient);
-  /* (Landing uses global navbar; no standalone nav styles needed) */
-  color: var(--ph-text-soft);
-  font-size: 14px;
-  font-weight: 500;
-  padding: 8px 12px;
-  border-radius: 999px;
-  cursor: pointer;
-  transition: background 0.2s ease, color 0.2s ease, transform 0.2s ease;
-}
 
-.ph-nav-link:hover {
-  background: rgba(31, 41, 55, 0.9);
-  color: var(--ph-text);
-  transform: translateY(-1px);
-}
 
-.ph-nav-cta {
-  background: linear-gradient(135deg, #4f46e5, #22c55e);
-  color: #0b1120;
-/* Use Inter / DM Sans if available */
-@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap");
-}
 
 .ph-root {
   min-height: 100vh;
