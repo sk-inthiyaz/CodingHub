@@ -13,7 +13,7 @@ const StreakStatusCard = () => {
   const fetchUserStats = async () => {
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch('http://localhost:5000/api/streak/stats', {
+      const response = await fetch(`${window.API_BASE_URL}/api/streak/stats`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       if (response.ok) {
