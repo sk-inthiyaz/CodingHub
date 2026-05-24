@@ -23,19 +23,19 @@ const ProgressTrackerPage = () => {
       const token = localStorage.getItem('token');
       
       // Fetch Streak Stats
-      const streakRes = await fetch('http://localhost:5000/api/streak/stats', {
+      const streakRes = await fetch(`${window.API_BASE_URL}/api/streak/stats`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       const streakData = streakRes.ok ? await streakRes.json() : null;
 
       // Fetch Practice Stats
-      const practiceRes = await fetch('http://localhost:5000/api/practice/stats', {
+      const practiceRes = await fetch(`${window.API_BASE_URL}/api/practice/stats`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       const practiceData = practiceRes.ok ? await practiceRes.json() : null;
 
       // Fetch Streak History
-      const historyRes = await fetch('http://localhost:5000/api/streak/history', {
+      const historyRes = await fetch(`${window.API_BASE_URL}/api/streak/history`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       const historyData = historyRes.ok ? await historyRes.json() : null;
