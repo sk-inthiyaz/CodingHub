@@ -130,8 +130,8 @@ const ProfilePage = ({ isDark }) => {
         }
 
         const endpoint = userId 
-          ? `http://localhost:5000/api/profile/user/${userId}`
-          : 'http://localhost:5000/api/profile/me';
+          ? `${window.API_BASE_URL}/api/profile/user/${userId}`
+          : `${window.API_BASE_URL}/api/profile/me`;
         
         const response = await axios.get(endpoint, {
           headers: { Authorization: `Bearer ${token}` }
@@ -271,7 +271,7 @@ const ProfilePage = ({ isDark }) => {
         payload.avatar = formValues.avatar;
       }
 
-      await axios.put('http://localhost:5000/api/profile/me', payload, {
+      await axios.put(`${window.API_BASE_URL}/api/profile/me`, payload, {
         headers: {
           Authorization: `Bearer ${token}`,
           'Content-Type': 'application/json'
