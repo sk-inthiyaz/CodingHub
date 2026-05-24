@@ -101,7 +101,7 @@ const AICodingAssistant = () => {
 
     try {
       // Use existing backend explain endpoint to leverage AI
-      const res = await fetch('http://localhost:5000/api/explain', {
+      const res = await fetch(`${window.API_BASE_URL}/api/explain`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
         body: JSON.stringify({ code: prompt }),
