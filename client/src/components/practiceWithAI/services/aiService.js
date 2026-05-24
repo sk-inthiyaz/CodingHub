@@ -37,7 +37,7 @@ function shuffleArray(array) {
 export const analyzeCode = async (code) => {
   try {
     console.log('[DEBUG] Sending code for analysis:', code);
-    const response = await fetch('http://localhost:5000/api/practice/analyze', {
+    const response = await fetch(`${window.API_BASE_URL}/api/practice/analyze`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
