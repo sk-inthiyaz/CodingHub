@@ -11,7 +11,7 @@ const WatchTutorials = ({ language, topic }) => {
       try {
         setLoading(true);
         setError(null);
-        const response = await fetch(`http://localhost:5000/api/tutorials/${language}/${topic}`);
+        const response = await fetch(`${window.API_BASE_URL}/api/tutorials/${language}/${topic}`);
         
         if (!response.ok) {
           throw new Error('Failed to fetch tutorials');
