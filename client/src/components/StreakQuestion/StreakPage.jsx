@@ -85,7 +85,7 @@ const StreakPage = () => {
     const fetchSolved = async () => {
       try {
         const token = localStorage.getItem('token');
-        const res = await fetch('http://localhost:5000/api/streak/stats', {
+        const res = await fetch(`${window.API_BASE_URL}/api/streak/stats`, {
           headers: { 'Authorization': `Bearer ${token}` }
         });
         const data = await res.json();
@@ -110,7 +110,7 @@ const StreakPage = () => {
       
       // Fetch latest accepted submission
       const subRes = await fetch(
-        `http://localhost:5000/api/problems/${problemId}/submissions/latest?status=accepted`,
+        `${window.API_BASE_URL}/api/problems/${problemId}/submissions/latest?status=accepted`,
         { headers: { 'Authorization': `Bearer ${token}` } }
       );
       
@@ -124,7 +124,7 @@ const StreakPage = () => {
       
       // Fetch presigned URL for code
       const codeRes = await fetch(
-        `http://localhost:5000/api/submissions/${submission._id}/code`,
+        `${window.API_BASE_URL}/api/submissions/${submission._id}/code`,
         { headers: { 'Authorization': `Bearer ${token}` } }
       );
       
