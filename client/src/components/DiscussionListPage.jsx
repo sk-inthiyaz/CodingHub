@@ -51,7 +51,7 @@ const DiscussionListPage = ({ isDark }) => {
     try {
       setLoading(true);
       const token = localStorage.getItem('token');
-      const response = await axios.get('http://localhost:5000/api/discussions', {
+      const response = await axios.get(`${window.API_BASE_URL}/api/discussions`, {
         headers: { Authorization: `Bearer ${token}` },
         params: {
           language: filters.language,
@@ -80,7 +80,7 @@ const DiscussionListPage = ({ isDark }) => {
   const fetchTrendingDiscussions = async () => {
     try {
       const token = localStorage.getItem('token');
-      const response = await axios.get('http://localhost:5000/api/discussions', {
+      const response = await axios.get(`${window.API_BASE_URL}/api/discussions`, {
         headers: { Authorization: `Bearer ${token}` },
         params: {
           sort: 'popular',
