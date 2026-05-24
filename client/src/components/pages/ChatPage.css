@@ -5,25 +5,43 @@
 .chatpage-root {
   background: var(--bg-gradient);
   color: var(--text-color);
-  min-height: 100vh;
+  height: 100vh; /* Fixed height to viewport */
   width: 100%;
-  overflow-x: hidden;
+  overflow: hidden; /* Prevent body scroll */
+  display: flex;
+  flex-direction: column;
 }
 
 .heading-container {
   display: flex;
   justify-content: center;
-  margin-top: 20px;
+  flex-shrink: 0;
+  padding: 10px 0;
+  margin-top: 10px; /* Slight buffer from navbar if needed */
 }
 
 .chatpage-title-fixed {
-  font-size: 2rem;
-  font-weight: 700;
-  background: linear-gradient(135deg, var(--accent-color), #818CF8);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
+  font-size: 22px; /* Smaller font */
+  font-weight: 600;
+  
+  /* Make it stand out pill-style */
+  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+  color: white;
+  -webkit-background-clip: unset; /* Remove text clip */
+  -webkit-text-fill-color: white; /* Remove text fill */
+  
+  padding: 10px 24px;
+  border-radius: 99px; /* Rounded pill */
+  box-shadow: 0 4px 6px -1px rgba(59, 130, 246, 0.3);
+  
   text-align: center;
   font-family: 'Inter', sans-serif;
+  margin: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  position: relative;
+  z-index: 50; /* Ensure visible on top */
 }
 
 /* ------------------------------------
@@ -35,19 +53,22 @@
   flex-direction: column;
   align-items: center;
   width: 100vw;
+  flex: 1; /* Take remaining height */
+  overflow: hidden; /* Prevent scroll */
+  padding-bottom: 20px;
 }
 
 .chat-wrapper-fixed {
   width: 85%;
   max-width: 1100px;
-  margin: 25px auto 0 auto; /* Removed bottom margin */
+  margin: 10px auto 0 auto; /* Small margin */
   
   /* MONITOR BEZEL: Silver/Metallic Look */
   background: #d4d4d8; 
-  padding: 16px; /* Bezel Thickness */
+  padding: 12px; /* Reduced bezel size slightly */
   
   /* Only top corners rounded */
-  border-radius: 16px 16px 0 0;
+  border-radius: 12px 12px 0 0;
   border: 1px solid #a1a1aa;
   border-bottom: none; /* Seamless connection */
   
@@ -59,8 +80,8 @@
   display: flex;
   flex-direction: column;
   overflow: hidden;
-  height: 85vh; 
-  min-height: 600px; 
+  flex: 1;
+  min-height: 0;
   transition: 0.2s ease;
   position: relative;
   z-index: 20;
@@ -130,47 +151,10 @@
 
 /* Clean textarea */
 .chatpage-textarea {
-  width: 100%;
-  min-height: 80px;
-  padding: 14px 16px;
-  border-radius: 10px;
-  background: #fff;
-  color: #111;
-  border: 1.5px solid var(--border-color);
-  resize: none;
-  font-size: 16px;
-  font-family: "Inter", sans-serif;
-  transition: all 0.25s ease;
-}
-
-.chatpage-textarea:focus {
-  border-color: #2563eb;
-  background: #000000;
-  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
-  outline: none;
-}
-
-/* ------------------------------------
-   INPUT LAYOUT (Split View)
------------------------------------- */
-
-.input-row.black-box {
-  display: flex;
-  flex-direction: row;
-  gap: 16px;
-  width: 100%;
-  align-items: stretch;
-  background: transparent; /* Removed background, now handled by keyboard chassis */
-  border-radius: 0;
-  padding: 0;
-  border: none;
-  box-shadow: none;
-}
-
-.chatpage-textarea {
   flex-grow: 1;
   width: auto; 
-  min-height: 120px; /* Increased height */
+  min-height: 80px; 
+  max-height: 120px;
   
   /* KEYCAP STYLE TEXTAREA */
   background: #ffffff;
@@ -181,6 +165,7 @@
   padding: 16px;
   line-height: 1.6;
   font-family: 'Inter', sans-serif;
+  resize: none;
   
   /* Keycap Shadow */
   box-shadow: 0 2px 4px rgba(0,0,0,0.05);
@@ -220,7 +205,7 @@
     linear-gradient(135deg, #64748b 50%, transparent 50%);
 }
 
-.mode-select op- ENTER KEY Style */
+/* .mode-select op- ENTER KEY Style */
 .sendbtn-fixed {
   padding: 0;
   height: 45px;
