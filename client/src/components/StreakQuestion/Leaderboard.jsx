@@ -9,7 +9,7 @@ const Leaderboard = ({ embedMode = false, limit = 10 }) => {
   useEffect(() => {
     (async () => {
       try {
-        const res = await fetch('http://localhost:5000/api/streak/leaderboard');
+        const res = await fetch(`${window.API_BASE_URL}/api/streak/leaderboard`);
         const data = await res.json();
         const limited = embedMode ? (Array.isArray(data) ? data.slice(0, limit) : []) : (Array.isArray(data) ? data : []);
         setRows(limited);
