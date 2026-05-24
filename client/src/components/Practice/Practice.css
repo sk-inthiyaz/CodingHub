@@ -425,6 +425,7 @@
   gap: 0.75rem;
 }
 
+/* ✅ FIX 3: Prevent buttons from growing on click — lock size with box-sizing and remove active transform */
 .btn-run-header,
 .btn-submit-header {
   padding: 0.5rem 1.25rem;
@@ -432,11 +433,15 @@
   border-radius: 8px;
   font-weight: 600;
   cursor: pointer;
-  transition: all 0.2s;
+  transition: background 0.2s, box-shadow 0.2s, color 0.2s;
   display: flex;
   align-items: center;
   gap: 0.5rem;
   font-size: 0.9rem;
+  box-sizing: border-box;    /* lock dimensions */
+  min-width: max-content;    /* never shrink below text */
+  outline: none;             /* remove focus ring that causes reflow */
+  -webkit-appearance: none;  /* reset browser button style */
 }
 
 .btn-run-header {
@@ -451,15 +456,25 @@
   color: #10b981;
 }
 
+/* active state: only color change, NO transform/size change */
+.btn-run-header:active:not(:disabled) {
+  background: rgba(16, 185, 129, 0.1);
+}
+
 .btn-submit-header {
   background: #10b981;
   color: white;
+  border: 1px solid transparent;
 }
 
 .btn-submit-header:hover:not(:disabled) {
   background: #059669;
-  transform: translateY(-1px);
-  box-shadow: 0 2px 8px rgba(16, 185, 129, 0.3);
+  box-shadow: 0 2px 8px rgba(16, 185, 129, 0.35); /* shadow, not transform */
+}
+
+.btn-submit-header:active:not(:disabled) {
+  background: #047857;
+  box-shadow: none;
 }
 
 .btn-run-header:disabled,
@@ -758,6 +773,30 @@
   background: var(--card-bg);
 }
 
+/* ✅ FIX 2: Green/red tabs after Run */
+.test-case-tab.tab-passed {
+  color: #10b981;
+}
+.test-case-tab.tab-passed.active {
+  color: #10b981;
+  border-bottom-color: #10b981;
+}
+.test-case-tab.tab-failed {
+  color: #ef4444;
+}
+.test-case-tab.tab-failed.active {
+  color: #ef4444;
+  border-bottom-color: #ef4444;
+}
+
+.tab-dot {
+  font-size: 0.5rem;
+  margin-right: 0.25rem;
+  vertical-align: middle;
+}
+.passed-dot { color: #10b981; }
+.failed-dot  { color: #ef4444; }
+
 .test-case-content {
   padding: 1.5rem;
   min-height: 120px;
@@ -812,6 +851,34 @@
 .test-case-actions .btn-run {
   width: 100%;
   justify-content: center;
+}
+
+/* ✅ FIX 1: Test count banner shown after Submit */
+.test-summary-banner {
+  text-align: center;
+  padding: 0.75rem 1rem;
+  margin: 1rem 0;
+}
+
+.test-count-badge {
+  display: inline-block;
+  padding: 0.45rem 1.25rem;
+  border-radius: 20px;
+  font-weight: 700;
+  font-size: 1rem;
+  letter-spacing: 0.01em;
+}
+
+.test-count-badge.all-passed {
+  background: rgba(16, 185, 129, 0.15);
+  color: #10b981;
+  border: 1px solid rgba(16, 185, 129, 0.3);
+}
+
+.test-count-badge.some-failed {
+  background: rgba(239, 68, 68, 0.12);
+  color: #ef4444;
+  border: 1px solid rgba(239, 68, 68, 0.25);
 }
 
 /* ===================================
