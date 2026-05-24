@@ -22,7 +22,7 @@ function ChatPage({ isDark, toggleDarkMode }) {
   useEffect(() => {
     const userId = user?._id || user?.userId;
     if (user && userId) {
-      fetch(`http://localhost:5000/api/chat-history/${userId}`, {
+      fetch(`${window.API_BASE_URL}/api/chat-history/${userId}`, {
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('token')}`
         }
@@ -65,7 +65,7 @@ Just ask me anything about coding! 🚀`
 
   const updateExistingChat = async (chatId, msgs) => {
     try {
-      const response = await fetch(`http://localhost:5000/api/chat-history/${chatId}`, {
+      const response = await fetch(`${window.API_BASE_URL}/api/chat-history/${chatId}`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
@@ -93,7 +93,7 @@ Just ask me anything about coding! 🚀`
       const title = getChatTitle(msgs) || msgs.find(msg => msg.role === "user")?.content.slice(0, 30) + "...";
 
       try {
-        const response = await fetch("http://localhost:5000/api/chat-history", {
+        const response = await fetch(`${window.API_BASE_URL}/api/chat-history`, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
@@ -157,7 +157,7 @@ Just ask me anything about coding! 🚀`
         return `Explain this code or request with:\n- What it does\n- Step-by-step explanation\n- Edge cases\n- Time and space complexity\n- Improvements/best practices\nContent:\n${inputCode}`;
       })();
 
-      const res = await fetch("http://localhost:5000/api/explain", {
+      const res = await fetch(`${window.API_BASE_URL}/api/explain`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -223,7 +223,7 @@ Just ask me anything about coding! 🚀`
     if (!chatId || !window.confirm('Are you sure you want to delete this chat?')) return;
 
     try {
-      const response = await fetch(`http://localhost:5000/api/chat-history/${chatId}`, {
+      const response = await fetch(`${window.API_BASE_URL}/api/chat-history/${chatId}`, {
         method: 'DELETE',
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('token')}`
