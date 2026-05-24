@@ -7,7 +7,7 @@ const { auth } = require('../middleware/auth');
 // Get user settings
 router.get('/', auth, async (req, res) => {
   try {
-    const user = await User.findById(req.userId).select('-password');
+    const user = await User.findById(req.user._id).select('-password');
     
     if (!user) {
       return res.status(404).json({ message: 'User not found' });
@@ -41,7 +41,7 @@ router.put('/change-password', auth, async (req, res) => {
     }
 
     // Find user
-    const user = await User.findById(req.userId);
+    const user = await User.findById(req.user._id);
     
     if (!user) {
       return res.status(404).json({ message: 'User not found' });
@@ -78,7 +78,7 @@ router.put('/notifications', auth, async (req, res) => {
       return res.status(400).json({ message: 'Notification settings are required' });
     }
 
-    const user = await User.findById(req.userId);
+    const user = await User.findById(req.user._id);
     
     if (!user) {
       return res.status(404).json({ message: 'User not found' });
@@ -106,7 +106,7 @@ router.put('/notifications', auth, async (req, res) => {
 // Delete account
 router.delete('/delete-account', auth, async (req, res) => {
   try {
-    const user = await User.findById(req.userId);
+    const user = await User.findById(req.user._id);
     
     if (!user) {
       return res.status(404).json({ message: 'User not found' });
@@ -125,25 +125,25 @@ router.delete('/delete-account', auth, async (req, res) => {
     const CodeExplanation = require('../models/CodeExplanation');
     
     // Delete user's submissions
-    await Submission.deleteMany({ userId: req.userId });
+    await Submission.deleteMany({ userId: req.user._id });
     
     // Delete user's chat history
-    await ChatHistory.deleteMany({ userId: req.userId });
+    await ChatHistory.deleteMany({ userId: req.user._id });
     
     // Delete user's code explanations
-    await CodeExplanation.deleteMany({ userId: req.userId });
+    await CodeExplanation.deleteMany({ userId: req.user._id });
 
     // Delete discussions model if it exists
     try {
       const Discussion = require('../models/Discussion');
-      await Discussion.deleteMany({ author: req.userId });
+      await Discussion.deleteMany({ author: req.user._id });
     } catch (e) {
       // Discussion model might not exist
       console.log('Discussion model not found, skipping...');
     }
 
     // Finally, delete the user
-    await User.findByIdAndDelete(req.userId);
+    await User.findByIdAndDelete(req.user._id);
 
     res.json({ message: 'Account deleted successfully' });
   } catch (error) {

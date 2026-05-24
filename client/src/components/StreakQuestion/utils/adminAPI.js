@@ -1,4 +1,4 @@
-const BASE_URL = 'http://localhost:5000/api';
+const BASE_URL = `${window.API_BASE_URL}/api`;
 
 // Fetch all questions
 export const fetchQuestions = async () => {

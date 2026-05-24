@@ -1,15 +1,8 @@
 require('dotenv').config();
 
-// Debug environment variables
-console.log('[DEBUG] Environment Variables:', {
-    hasGeminiKey: !!process.env.GEMINI_API_KEY,
-    geminiKeyLength: process.env.GEMINI_API_KEY ? process.env.GEMINI_API_KEY.length : 0,
-});
-
 const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
-const bodyParser = require('body-parser');
 const authRoutes = require('./routes/auth');
 const explainRoutes = require('./routes/explainRoute');
 const chatHistoryRoutes = require('./routes/chatHistory');
@@ -25,25 +18,22 @@ const profileRoutes = require('./routes/profileRoutes');
 const settingsRoutes = require('./routes/settingsRoutes');
 const app = express();
 
-// CORS Configuration
+// CORS Configuration — restrict to your frontend domain
 app.use(cors({
-  origin: '*',
+  origin: process.env.FRONTEND_URL || 'http://localhost:3000',
   credentials: true
 }));
 
-// Middleware with increased body size limit
-app.use(bodyParser.json({ limit: "10mb" }));
-app.use(express.json());
+// JSON body parser with size limit (express.json IS body-parser, no need for both)
+app.use(express.json({ limit: "10mb" }));
 
-// Debug logging middleware
-app.use((req, res, next) => {
+// Debug logging middleware — ONLY in development
+if (process.env.NODE_ENV !== 'production') {
+  app.use((req, res, next) => {
     console.log(`[DEBUG] ${req.method} ${req.url}`);
-    console.log('[DEBUG] Request Body:', req.body);
     next();
-});
-
-// Debug: Log the MongoDB URI to check if it's loaded
-console.log('MONGODB_URI:', process.env.MONGODB_URI);
+  });
+}
 
 const initializeAdmin = require('./utils/initAdmin');
 
@@ -81,6 +71,15 @@ app.use('/api/settings', settingsRoutes);
 
 app.get('/', (req, res) => {
   res.send('API is running');
+});
+
+// Global error handler — catches unhandled errors and prevents raw HTML stack traces
+app.use((err, req, res, next) => {
+  console.error('Unhandled error:', err);
+  res.status(err.status || 500).json({
+    message: err.message || 'Internal server error',
+    ...(process.env.NODE_ENV !== 'production' && { stack: err.stack })
+  });
 });
 
 const PORT = process.env.PORT || 5000;

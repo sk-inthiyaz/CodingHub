@@ -9,6 +9,12 @@
   font-size: 2rem;
   margin-bottom: 30px;
   color: var(--text-primary);
+  animation: lh-title-in 0.6s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+@keyframes lh-title-in {
+  from { opacity: 0; transform: translateY(-20px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
 .card-grid {
@@ -21,32 +27,108 @@
 
 .learnhub-card {
   background-color: var(--background-secondary);
-  border-radius: 12px;
+  border-radius: 16px;
   box-shadow: 0 8px 24px rgba(2,6,23,.06);
-  padding: 25px;
-  transition: transform 0.2s ease, background-color 0.2s ease, box-shadow 0.2s ease;
+  padding: 28px 25px;
   cursor: pointer;
   color: var(--text-primary);
+  position: relative;
+  overflow: hidden;
+  border: 1px solid transparent;
+
+  /* Entry animation — each card staggers in */
+  opacity: 0;
+  transform: translateY(30px) scale(0.96);
+  animation: lh-card-in 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+
+  /* Smooth hover transition */
+  transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1),
+              box-shadow 0.35s ease,
+              border-color 0.35s ease,
+              background-color 0.35s ease;
+}
+
+/* Stagger delays for each card */
+.learnhub-card:nth-child(1) { animation-delay: 0.1s; }
+.learnhub-card:nth-child(2) { animation-delay: 0.18s; }
+.learnhub-card:nth-child(3) { animation-delay: 0.26s; }
+.learnhub-card:nth-child(4) { animation-delay: 0.34s; }
+.learnhub-card:nth-child(5) { animation-delay: 0.42s; }
+.learnhub-card:nth-child(6) { animation-delay: 0.50s; }
+
+@keyframes lh-card-in {
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* Gradient shine sweep on hover */
+.learnhub-card::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(99, 102, 241, 0.06),
+    transparent
+  );
+  transition: left 0.6s ease;
+  pointer-events: none;
+}
+
+.learnhub-card:hover::before {
+  left: 100%;
+}
+
+/* Hover lift effect */
+.learnhub-card:hover {
+  transform: translateY(-8px) scale(1.02);
+  box-shadow: 0 16px 40px rgba(99, 102, 241, 0.12);
+  border-color: rgba(99, 102, 241, 0.25);
+}
+
+/* Active press effect */
+.learnhub-card:active {
+  transform: translateY(-2px) scale(0.98);
+  transition-duration: 0.1s;
 }
 
 [data-theme="dark"] .learnhub-card {
   box-shadow: 0 8px 24px rgba(0,0,0,.3);
 }
 
-.learnhub-card:hover {
-  background-color: var(--background-primary);
-  transform: translateY(-5px);
+[data-theme="dark"] .learnhub-card:hover {
+  box-shadow: 0 16px 40px rgba(99, 102, 241, 0.2);
 }
 
 .learnhub-card h3 {
   color: var(--text-primary);
+  margin-bottom: 6px;
+  transition: color 0.3s ease;
+}
+
+.learnhub-card:hover h3 {
+  color: #6366f1;
 }
 
 .learnhub-card p {
   color: var(--text-secondary);
+  font-size: 0.9rem;
+  line-height: 1.5;
 }
 
 .card-icon {
-  font-size: 2rem;
-  margin-bottom: 10px;
+  font-size: 2.2rem;
+  margin-bottom: 12px;
+  display: inline-block;
+  transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.learnhub-card:hover .card-icon {
+  transform: scale(1.2) rotate(-5deg);
 }

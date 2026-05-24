@@ -1,0 +1,146 @@
+{
+  "problems": [
+    {
+      "title": "Number of Recent Calls",
+      "difficulty": "Medium",
+      "topic": "Queue",
+      "description": "You are given a sequence of incoming request timestamps in milliseconds. For each request, return the number of requests that have occurred in the inclusive time range [t - 3000, t]. Implement a function that processes all timestamps and returns an array containing the answer for each timestamp.",
+      "constraints": [
+        "1 <= timestamps.length <= 100000",
+        "1 <= timestamps[i] <= 1000000000",
+        "timestamps is strictly increasing"
+      ],
+      "hints": [
+        "A queue can efficiently remove outdated timestamps.",
+        "Keep only timestamps within the last 3000 milliseconds.",
+        "The queue size after cleanup is the answer for the current timestamp."
+      ],
+      "tags": [
+        "queue",
+        "sliding-window",
+        "simulation"
+      ],
+      "supportedLanguages": [
+        "javascript",
+        "python",
+        "java",
+        "cpp"
+      ],
+      "functionSignature": {
+        "name": "recentCalls",
+        "params": [
+          "timestamps"
+        ],
+        "returnType": "int[]"
+      },
+      "codeTemplate": {
+        "javascript": "function recentCalls(timestamps) {\n    // Your code here\n}",
+        "python": "def recentCalls(timestamps):\n    # Your code here\n    pass",
+        "java": "class Solution {\n    public int[] recentCalls(int[] timestamps) {\n        return new int[]{};\n    }\n}",
+        "cpp": "#include <vector>\nusing namespace std;\nclass Solution {\npublic:\n    vector<int> recentCalls(vector<int>& timestamps) {\n        return {};\n    }\n};"
+      },
+      "examples": [
+        {
+          "input": "timestamps = [1,100,3001,3002]",
+          "output": "[1,2,3,3]",
+          "explanation": "For each timestamp, count requests in the range [t-3000, t]."
+        }
+      ],
+      "testCases": [
+        {
+          "input": "[1,100,3001,3002]",
+          "expectedOutput": "[1,2,3,3]",
+          "explanation": "Basic example",
+          "isHidden": false
+        },
+        {
+          "input": "[1,2,3,4,5]",
+          "expectedOutput": "[1,2,3,4,5]",
+          "explanation": "All timestamps within 3000ms",
+          "isHidden": false
+        },
+        {
+          "input": "[1000,4000,7000]",
+          "expectedOutput": "[1,2,2]",
+          "explanation": "Old requests expire",
+          "isHidden": false
+        },
+        {
+          "input": "[1]",
+          "expectedOutput": "[1]",
+          "isHidden": true
+        },
+        {
+          "input": "[1,3001]",
+          "expectedOutput": "[1,2]",
+          "isHidden": true
+        },
+        {
+          "input": "[1,3002]",
+          "expectedOutput": "[1,1]",
+          "isHidden": true
+        },
+        {
+          "input": "[1,1000,2000,3000]",
+          "expectedOutput": "[1,2,3,4]",
+          "isHidden": true
+        },
+        {
+          "input": "[1,1000,2000,3000,4000]",
+          "expectedOutput": "[1,2,3,4,4]",
+          "isHidden": true
+        },
+        {
+          "input": "[10,20,30,3040]",
+          "expectedOutput": "[1,2,3,1]",
+          "isHidden": true
+        },
+        {
+          "input": "[1,5000,10000]",
+          "expectedOutput": "[1,1,1]",
+          "isHidden": true
+        },
+        {
+          "input": "[100,200,300,400,500,600]",
+          "expectedOutput": "[1,2,3,4,5,6]",
+          "isHidden": true
+        },
+        {
+          "input": "[1,3000,6000,9000]",
+          "expectedOutput": "[1,2,2,2]",
+          "isHidden": true
+        },
+        {
+          "input": "[1,2999,3000,3001]",
+          "expectedOutput": "[1,2,3,4]",
+          "isHidden": true
+        },
+        {
+          "input": "[1,3002,6003,9004]",
+          "expectedOutput": "[1,1,1,1]",
+          "isHidden": true
+        },
+        {
+          "input": "[100,1100,2100,3100,4100]",
+          "expectedOutput": "[1,2,3,4,4]",
+          "isHidden": true
+        },
+        {
+          "input": "[500,1000,1500,2000,2500,3000,3500]",
+          "expectedOutput": "[1,2,3,4,5,6,7]",
+          "isHidden": true
+        },
+        {
+          "input": "[1,100,200,5000,5100]",
+          "expectedOutput": "[1,2,3,1,2]",
+          "isHidden": true
+        },
+        {
+          "input": "[1000,2000,3000,4000,5000]",
+          "expectedOutput": "[1,2,3,4,4]",
+          "isHidden": true
+        }
+      ]
+    }
+  ]
+}

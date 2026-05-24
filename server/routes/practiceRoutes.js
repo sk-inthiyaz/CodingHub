@@ -6,6 +6,7 @@ const { callGeminiAPI } = require('../utils/geminiHelper');
 const { auth } = require('../middleware/auth');
 const practiceController = require('../controllers/practiceController');
 const { validateProblemPayload, isAllowedReturnType } = require('../utils/validator');
+const { GEMINI_URL, API_KEY } = require('../config/geminiConfig');
 
 // ===============================
 // NEW PRACTICE SYSTEM ROUTES
@@ -44,7 +45,7 @@ router.get('/problems/all', isAdmin, async (req, res) => {
     res.status(500).json({ 
       message: 'Failed to fetch problems', 
       error: error.message,
-      details: error.stack
+      details: error.message
     });
   }
 });
@@ -221,7 +222,7 @@ router.get('/admin/stats', isAdmin, async (req, res) => {
     res.status(500).json({ 
       message: 'Failed to fetch stats', 
       error: error.message,
-      details: error.stack
+      details: error.message
     });
   }
 });

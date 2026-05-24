@@ -21,4 +21,4 @@ const codeExplanationSchema = new mongoose.Schema({
   }
 });
 
-module.exports = mongoose.model('CodeExplanation', 'codeExplanations');
+module.exports = mongoose.model('CodeExplanation', codeExplanationSchema);

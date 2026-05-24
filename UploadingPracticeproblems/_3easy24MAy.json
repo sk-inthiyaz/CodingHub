@@ -1,0 +1,133 @@
+{
+  "problems": [
+    {
+      "title": "Maximum Element",
+      "difficulty": "Easy",
+      "topic": "Arrays",
+      "description": "Given an array of integers nums, return the largest element in the array.",
+      "constraints": [
+        "1 <= nums.length <= 1000",
+        "-10000 <= nums[i] <= 10000"
+      ],
+      "hints": [
+        "Traverse the array once.",
+        "Keep track of the maximum element seen so far."
+      ],
+      "tags": ["array"],
+      "supportedLanguages": ["javascript", "python", "java", "cpp"],
+      "functionSignature": {
+        "name": "findMax",
+        "params": ["nums"],
+        "returnType": "int"
+      },
+      "codeTemplate": {
+        "javascript": "function findMax(nums) {\n    // Your code here\n}",
+        "python": "def findMax(nums):\n    # Your code here\n    pass",
+        "java": "class Solution {\n    public int findMax(int[] nums) {\n        return 0;\n    }\n}",
+        "cpp": "#include <vector>\nusing namespace std;\nclass Solution {\npublic:\n    int findMax(vector<int>& nums) {\n        return 0;\n    }\n};"
+      },
+      "examples": [
+        {
+          "input": "nums = [1,5,3]",
+          "output": "5",
+          "explanation": "5 is the largest element."
+        }
+      ],
+      "testCases": [
+        { "input": "[1,5,3]", "expectedOutput": "5", "isHidden": false },
+        { "input": "[10,20,30]", "expectedOutput": "30", "isHidden": false },
+        { "input": "[7]", "expectedOutput": "7", "isHidden": true },
+        { "input": "[-1,-5,-3]", "expectedOutput": "-1", "isHidden": true },
+        { "input": "[100,99,98]", "expectedOutput": "100", "isHidden": true },
+        { "input": "[0,0,0]", "expectedOutput": "0", "isHidden": true },
+        { "input": "[-10000,10000]", "expectedOutput": "10000", "isHidden": true }
+      ]
+    },
+    {
+      "title": "Count Vowels",
+      "difficulty": "Easy",
+      "topic": "Strings",
+      "description": "Given a lowercase English string s, return the number of vowels present in the string.",
+      "constraints": [
+        "1 <= s.length <= 1000",
+        "s contains only lowercase English letters"
+      ],
+      "hints": [
+        "Check each character.",
+        "Vowels are a, e, i, o, u."
+      ],
+      "tags": ["string"],
+      "supportedLanguages": ["javascript", "python", "java", "cpp"],
+      "functionSignature": {
+        "name": "countVowels",
+        "params": ["s"],
+        "returnType": "int"
+      },
+      "codeTemplate": {
+        "javascript": "function countVowels(s) {\n    // Your code here\n}",
+        "python": "def countVowels(s):\n    # Your code here\n    pass",
+        "java": "class Solution {\n    public int countVowels(String s) {\n        return 0;\n    }\n}",
+        "cpp": "#include <string>\nusing namespace std;\nclass Solution {\npublic:\n    int countVowels(string s) {\n        return 0;\n    }\n};"
+      },
+      "examples": [
+        {
+          "input": "hello",
+          "output": "2",
+          "explanation": "The vowels are e and o."
+        }
+      ],
+      "testCases": [
+        { "input": "hello", "expectedOutput": "2", "isHidden": false },
+        { "input": "aeiou", "expectedOutput": "5", "isHidden": false },
+        { "input": "bcd", "expectedOutput": "0", "isHidden": true },
+        { "input": "programming", "expectedOutput": "3", "isHidden": true },
+        { "input": "a", "expectedOutput": "1", "isHidden": true },
+        { "input": "zzzzz", "expectedOutput": "0", "isHidden": true },
+        { "input": "education", "expectedOutput": "5", "isHidden": true }
+      ]
+    },
+    {
+      "title": "Is Array Sorted",
+      "difficulty": "Easy",
+      "topic": "Arrays",
+      "description": "Given an array of integers nums, return true if the array is sorted in non-decreasing order, otherwise return false.",
+      "constraints": [
+        "1 <= nums.length <= 1000",
+        "-10000 <= nums[i] <= 10000"
+      ],
+      "hints": [
+        "Compare adjacent elements.",
+        "If nums[i] > nums[i+1], the array is not sorted."
+      ],
+      "tags": ["array"],
+      "supportedLanguages": ["javascript", "python", "java", "cpp"],
+      "functionSignature": {
+        "name": "isSorted",
+        "params": ["nums"],
+        "returnType": "boolean"
+      },
+      "codeTemplate": {
+        "javascript": "function isSorted(nums) {\n    // Your code here\n}",
+        "python": "def isSorted(nums):\n    # Your code here\n    pass",
+        "java": "class Solution {\n    public boolean isSorted(int[] nums) {\n        return false;\n    }\n}",
+        "cpp": "#include <vector>\nusing namespace std;\nclass Solution {\npublic:\n    bool isSorted(vector<int>& nums) {\n        return false;\n    }\n};"
+      },
+      "examples": [
+        {
+          "input": "nums = [1,2,2,3]",
+          "output": "true",
+          "explanation": "The array is in non-decreasing order."
+        }
+      ],
+      "testCases": [
+        { "input": "[1,2,2,3]", "expectedOutput": "true", "isHidden": false },
+        { "input": "[5,4,3]", "expectedOutput": "false", "isHidden": false },
+        { "input": "[1]", "expectedOutput": "true", "isHidden": true },
+        { "input": "[1,1,1]", "expectedOutput": "true", "isHidden": true },
+        { "input": "[-3,-2,-1]", "expectedOutput": "true", "isHidden": true },
+        { "input": "[2,1,3]", "expectedOutput": "false", "isHidden": true },
+        { "input": "[10,20,30,25]", "expectedOutput": "false", "isHidden": true }
+      ]
+    }
+  ]
+}

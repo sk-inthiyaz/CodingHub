@@ -185,17 +185,18 @@ router.post('/forgot-password', async (req, res) => {
     await user.save();
 
     // Create reset URL
-    const resetUrl = `http://localhost:3000/reset-password?token=${resetToken}`;
+    const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
+    const resetUrl = `${frontendUrl}/reset-password?token=${resetToken}`;
 
     // In production, you would send an email here
-    console.log('Password reset URL:', resetUrl);
-    console.log('Reset token:', resetToken);
+    if (process.env.NODE_ENV !== 'production') {
+      console.log('Password reset URL:', resetUrl);
+      console.log('Reset token:', resetToken);
+    }
 
     // For now, just return success (in production, send email)
     res.json({ 
-      message: 'Password reset link sent to email',
-      // Remove this in production - only for development
-      resetUrl: resetUrl
+      message: 'Password reset link sent to email'
     });
   } catch (error) {
     console.error('Forgot password error:', error);

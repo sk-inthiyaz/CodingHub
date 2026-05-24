@@ -1,16 +1,21 @@
 const express = require("express");
 const dotenv = require("dotenv");
 const { callGeminiAPI } = require("../utils/geminiHelper");
+const { auth } = require("../middleware/auth");
 
 dotenv.config();
 
 const router = express.Router();
 
-// Simple heuristic to check if input looks like code
+// Simple heuristic to check if input is coding-related
 function isLikelyCode(input) {
-  // Allow natural language requests that ask for code generation or explanation
-  const intentKeywords = /(generate|create|write|explain|how|what|impl)/i;
+  // Allow natural language requests about coding
+  const intentKeywords = /(generate|create|write|explain|how|what|impl|code|program|algorithm|debug|fix|optimize|build|design|compare|difference|define|concept)/i;
   if (intentKeywords.test(input)) return true;
+
+  // Allow common CS / programming topic names
+  const csTopics = /(dynamic programming|recursion|sorting|searching|binary|linked list|tree|graph|stack|queue|hash|array|string|loop|function|class|object|pointer|memory|database|sql|api|rest|http|css|html|javascript|python|java|c\+\+|typescript|react|node|express|mongo|git|docker|regex|async|promise|callback|closure|scope|prototype|inheritance|polymorphism|encapsulation|abstraction|data structure|big o|complexity|greedy|backtrack|dfs|bfs|dijkstra|dp|oop|solid|mvc|crud)/i;
+  if (csTopics.test(input)) return true;
 
   const codeIndicators = [
     /;/, // semicolons (common in JS, Java, C)
@@ -24,7 +29,7 @@ function isLikelyCode(input) {
   return codeIndicators.some(regex => regex.test(input));
 }
 
-router.post("/", async (req, res) => {
+router.post("/", auth, async (req, res) => {
   try {
     const { code } = req.body;
 

@@ -56,8 +56,31 @@
 
 /* Action buttons */
 .action-buttons-enhanced { display:flex; gap:.75rem; margin: 1rem 0; flex-wrap: wrap; }
-.btn-run, .btn-submit { padding:.6rem 1rem; min-width: 130px; height: 40px; border:none; border-radius:8px; font-weight:600; cursor:pointer; color:white; background:#10b981; display:flex; align-items:center; justify-content:center; gap:.5rem; white-space: nowrap; }
+.btn-run, .btn-submit {
+  padding: .6rem 1rem;
+  width: 140px;
+  height: 40px;
+  border: none;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 0.9rem;
+  cursor: pointer;
+  color: white;
+  background: #10b981;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: .5rem;
+  white-space: nowrap;
+  box-sizing: border-box;
+  overflow: hidden;
+  flex-shrink: 0;
+  transition: background 0.2s ease, opacity 0.2s ease;
+}
 .btn-submit { background:#8b5cf6; }
+.btn-run:hover { background: #059669; }
+.btn-submit:hover { background: #7c3aed; }
+.btn-run:active, .btn-submit:active { opacity: 0.85; }
 .btn-run:disabled, .btn-submit:disabled { opacity:.6; cursor:not-allowed; }
 
 /* Scoped spinner for action buttons to avoid global .loading-spinner collisions */

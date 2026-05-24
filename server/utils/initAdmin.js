@@ -8,7 +8,8 @@ const initializeAdmin = async () => {
         
         if (!adminExists) {
             const salt = await bcrypt.genSalt(10);
-            const hashedPassword = await bcrypt.hash('0000', salt);
+            const adminPassword = process.env.ADMIN_DEFAULT_PASSWORD || 'Admin@2026!';
+            const hashedPassword = await bcrypt.hash(adminPassword, salt);
             
             const admin = new User({
                 email: 'admin@codinghub.com',

@@ -21,7 +21,7 @@ const UserStreakQuestionCard = () => {
       if (!token) {
         throw new Error('Please login to view today\'s question');
       }
-      const response = await fetch('http://localhost:5000/api/streak/today', {
+      const response = await fetch(`${window.API_BASE_URL}/api/streak/today`, {
         headers: {
           'Authorization': `Bearer ${token}`
         }
@@ -54,7 +54,7 @@ const UserStreakQuestionCard = () => {
   const fetchUserStats = async () => {
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch('http://localhost:5000/api/streak/stats', {
+      const response = await fetch(`${window.API_BASE_URL}/api/streak/stats`, {
         headers: {
           'Authorization': `Bearer ${token}`
         }

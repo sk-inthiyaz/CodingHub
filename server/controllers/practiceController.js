@@ -11,8 +11,17 @@ function normalizeExpected(expected) {
   try {
     if (typeof expected === 'string') {
       const trimmed = expected.trim();
+      // Strip surrounding double-quotes from string values stored as `"fl"` or `""`
+      // The code harness outputs raw strings (no quotes), so we must normalize expected too
+      if (trimmed.startsWith('"') && trimmed.endsWith('"') && trimmed.length >= 2) {
+        // It could be a JSON string — parse it to get the raw value
+        try { return JSON.parse(trimmed); } catch {}
+        // Fallback: manually strip outer quotes
+        return trimmed.slice(1, -1);
+      }
+      // JSON arrays / numbers
       if (/^[\[{]/.test(trimmed) || /^-?\d+(?:\.\d+)?$/.test(trimmed)) {
-        return JSON.parse(trimmed);
+        try { return JSON.parse(trimmed); } catch {}
       }
       return trimmed;
     }
@@ -44,6 +53,26 @@ function outputsEqual(expectedRaw, actualRaw) {
     }
   }
   return String(e) === String(a);
+}
+
+function codeLikelyNeedsStdin(code, language) {
+  const lang = String(language || '').toLowerCase();
+  const source = String(code || '');
+
+  if (lang === 'java') {
+    return /Scanner\s+\w+\s*=\s*new\s+Scanner\s*\(\s*System\.in\s*\)|System\.in/.test(source);
+  }
+  if (lang === 'python' || lang === 'py') {
+    return /\binput\s*\(/.test(source);
+  }
+  if (lang === 'cpp' || lang === 'c++') {
+    return /\bcin\s*>>|\bgetline\s*\(\s*cin\s*,/.test(source);
+  }
+  if (lang === 'javascript' || lang === 'js' || lang === 'node') {
+    return /process\.stdin|readline\s*\./.test(source);
+  }
+
+  return false;
 }
 
 // ✅ GET /api/practice/problems - List all practice problems with filters
@@ -197,9 +226,9 @@ const runCode = async (req, res) => {
           // Execute code in Docker with formatted input
           const result = await runCodeInDocker(wrappedCode, language, formattedInput, 10);
           
-          const actualOutput = result.stdout?.trim() || '';
-          const expectedOutput = testCase.expectedOutput?.trim() || '';
-          const passed = actualOutput === expectedOutput && result.exitCode === 0;
+          const actualOutput = result.stdout?.trim() ?? '';
+          // ✅ Use outputsEqual() — handles quoted strings, arrays, booleans, empty strings
+          const passed = result.exitCode === 0 && outputsEqual(testCase.expectedOutput, actualOutput);
           
           if (!passed) allPassed = false;
 
@@ -207,8 +236,10 @@ const runCode = async (req, res) => {
             passed,
             input: testCase.input,
             expectedOutput: testCase.expectedOutput,
-            actualOutput: actualOutput || 'No output',
-            error: result.stderr ? formatErrorForDisplay(result.stderr, language).errorMessage : null
+            actualOutput: actualOutput !== '' ? actualOutput : 'No output',
+            error: (result.exitCode !== 0 && result.stderr)
+              ? formatErrorForDisplay(result.stderr, language).errorMessage
+              : null
           });
 
         } catch (error) {
@@ -239,8 +270,7 @@ const runCode = async (req, res) => {
 
     } else {
       // Free-form code editor - run as-is without test cases
-      const wrappedCode = code;
-      const result = await runCodeInDocker(wrappedCode, language, testInput, 10);
+      const result = await runCodeInDocker(code, language, testInput, 10);
       const executionTime = Date.now() - startTime;
 
       // Format error for display
@@ -248,6 +278,15 @@ const runCode = async (req, res) => {
       if (result.stderr) {
         const formattedError = formatErrorForDisplay(result.stderr, language);
         errorMessage = formattedError.errorMessage || formattedError.fullError || result.stderr;
+      } else if (result.exitCode === 124 || result.exitCode === 143) {
+        // Timeout exit codes (124 = GNU timeout, 143 = SIGTERM)
+        if (codeLikelyNeedsStdin(code, language) && !String(testInput || '').trim()) {
+          errorMessage = 'Execution timed out: Your code is waiting for input (stdin). Enter the required input in the stdin box above, then click Run again.';
+        } else {
+          errorMessage = 'Time Limit Exceeded (10s). Check for infinite loops or heavy computation.';
+        }
+      } else if (result.exitCode !== 0) {
+        errorMessage = `Execution failed (exit code ${result.exitCode}). If your program expects input, provide it in the stdin box above.`;
       }
 
       return res.json({
@@ -385,13 +424,8 @@ const submitSolution = async (req, res) => {
 
     await PracticeProblem.findByIdAndUpdate(id, { acceptanceRate });
 
-    // If accepted, update user stats
-    if (allPassed) {
-      await User.findByIdAndUpdate(userId, {
-        $addToSet: { solvedProblems: id },
-        $inc: { totalSolved: 1 }
-      });
-    }
+    // If accepted, user stats are tracked via PracticeSubmission records
+    // (No need to update User model - getUserStats aggregates from PracticeSubmission)
 
     // Filter visible test results for response
     const visibleTestResults = testResults.filter(tr => !tr.isHidden);

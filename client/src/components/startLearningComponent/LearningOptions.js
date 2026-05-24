@@ -6,32 +6,76 @@ import ErrorBoundary from '../ErrorBoundary';
 const LearningOptions = ({ language, topic }) => {
   const [selectedOption, setSelectedOption] = useState(null);
   
-  // Function to generate a more specific GFG URL based on language and topic
+  // Verified GFG URLs for each language and topic
   const getGFGUrl = (language, topic) => {
-    // Remove spaces and special characters from topic
-    const formattedTopic = topic.toLowerCase().replace(/[&]/g, 'and').replace(/[^a-zA-Z0-9]/g, '-');
-    const formattedLang = language.toLowerCase();
-    
-    // Map topics to their GFG URL patterns
-    const topicMap = {
-      'basic syntax': `${formattedLang}-basics`,
-      'data types & variables': `${formattedLang}-data-types`,
-      'operators': `${formattedLang}-operators`,
-      'control flow': `${formattedLang}-control-flow`,
-      'loops': `${formattedLang}-loops`,
-      'functions': `${formattedLang}-functions`,
-      'data structures': `${formattedLang}-data-structures`,
-      'input/output': `${formattedLang}-input-output`,
-      'error handling': `${formattedLang}-exception-handling`,
+    const lang = language.toLowerCase();
+    const t = topic.toLowerCase();
+
+    const gfgLinks = {
+      java: {
+        'basic syntax': 'https://www.geeksforgeeks.org/java/java-basic-syntax/',
+        'data types & variables': 'https://www.geeksforgeeks.org/java/java-data-types/',
+        'operators': 'https://www.geeksforgeeks.org/java/operators-in-java/',
+        'control flow': 'https://www.geeksforgeeks.org/java/decision-making-javaif-else-switch-break-continue-jump/',
+        'loops': 'https://www.geeksforgeeks.org/java/loops-in-java/',
+        'functions': 'https://www.geeksforgeeks.org/java/methods-in-java/',
+        'data structures': 'https://www.geeksforgeeks.org/java/java-collections/',
+        'input/output': 'https://www.geeksforgeeks.org/java/java-io-input-output-in-java-with-examples/',
+        'error handling': 'https://www.geeksforgeeks.org/java/exceptions-in-java/',
+      },
+      python: {
+        'basic syntax': 'https://www.geeksforgeeks.org/python/python-syntax/',
+        'data types & variables': 'https://www.geeksforgeeks.org/python/python-data-types/',
+        'operators': 'https://www.geeksforgeeks.org/python/python-operators/',
+        'control flow': 'https://www.geeksforgeeks.org/python/python3-if-if-else-nested-if-if-elif-statements/',
+        'loops': 'https://www.geeksforgeeks.org/python/python-for-loops/',
+        'functions': 'https://www.geeksforgeeks.org/python/python-functions/',
+        'data structures': 'https://www.geeksforgeeks.org/python/python-data-structures/',
+        'input/output': 'https://www.geeksforgeeks.org/python/python-input-output/',
+        'error handling': 'https://www.geeksforgeeks.org/python/python-exception-handling/',
+      },
+      'c++': {
+        'basic syntax': 'https://www.geeksforgeeks.org/cpp/cpp-basic-syntax/',
+        'data types & variables': 'https://www.geeksforgeeks.org/cpp/cpp-data-types/',
+        'operators': 'https://www.geeksforgeeks.org/cpp/operators-in-cpp/',
+        'control flow': 'https://www.geeksforgeeks.org/cpp/decision-making-cpp/',
+        'loops': 'https://www.geeksforgeeks.org/cpp/cpp-loops/',
+        'functions': 'https://www.geeksforgeeks.org/cpp/functions-in-cpp/',
+        'data structures': 'https://www.geeksforgeeks.org/cpp/cpp-stl-standard-template-library/',
+        'input/output': 'https://www.geeksforgeeks.org/cpp/basic-input-output-in-cpp/',
+        'error handling': 'https://www.geeksforgeeks.org/cpp/exception-handling-in-cpp/',
+      },
+      javascript: {
+        'basic syntax': 'https://www.geeksforgeeks.org/javascript/javascript-syntax/',
+        'data types & variables': 'https://www.geeksforgeeks.org/javascript/javascript-data-types/',
+        'operators': 'https://www.geeksforgeeks.org/javascript/javascript-operators/',
+        'control flow': 'https://www.geeksforgeeks.org/javascript/javascript-if-else/',
+        'loops': 'https://www.geeksforgeeks.org/javascript/loops-in-javascript/',
+        'functions': 'https://www.geeksforgeeks.org/javascript/functions-in-javascript/',
+        'data structures': 'https://www.geeksforgeeks.org/javascript/javascript-data-structures/',
+        'input/output': 'https://www.geeksforgeeks.org/javascript/javascript-console-log/',
+        'error handling': 'https://www.geeksforgeeks.org/javascript/javascript-error-handling/',
+      },
+      js: {
+        'basic syntax': 'https://www.geeksforgeeks.org/javascript/javascript-syntax/',
+        'data types & variables': 'https://www.geeksforgeeks.org/javascript/javascript-data-types/',
+        'operators': 'https://www.geeksforgeeks.org/javascript/javascript-operators/',
+        'control flow': 'https://www.geeksforgeeks.org/javascript/javascript-if-else/',
+        'loops': 'https://www.geeksforgeeks.org/javascript/loops-in-javascript/',
+        'functions': 'https://www.geeksforgeeks.org/javascript/functions-in-javascript/',
+        'data structures': 'https://www.geeksforgeeks.org/javascript/javascript-data-structures/',
+        'input/output': 'https://www.geeksforgeeks.org/javascript/javascript-console-log/',
+        'error handling': 'https://www.geeksforgeeks.org/javascript/javascript-error-handling/',
+      },
     };
 
-    // Get the specific URL path or fallback to search
-    const specificPath = topicMap[topic.toLowerCase()];
-    if (specificPath) {
-      return `https://www.geeksforgeeks.org/${specificPath}/`;
+    // Look up the specific link
+    const langLinks = gfgLinks[lang];
+    if (langLinks && langLinks[t]) {
+      return langLinks[t];
     }
-    
-    // Fallback to search if no specific mapping exists
+
+    // Fallback to GFG search
     const query = `${language} ${topic}`;
     return `https://www.geeksforgeeks.org/search?q=${encodeURIComponent(query)}`;
   };

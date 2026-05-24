@@ -1,0 +1,113 @@
+{
+  "problems": [
+  {
+    "title": "Valid Anagram",
+    "difficulty": "Easy",
+    "topic": "Strings",
+    "description": "Given two strings s and t, return true if t is an anagram of s, and false otherwise.\n\nAn anagram is a word or phrase formed by rearranging the letters of a different word or phrase, typically using all the original letters exactly once.",
+    "constraints": [
+      "1 <= s.length <= 5 * 10^4",
+      "1 <= t.length <= 5 * 10^4",
+      "s and t consist of lowercase English letters only"
+    ],
+    "hints": [
+      "Sort both strings and compare — if equal, they are anagrams.",
+      "Use a frequency counter (hash map) to count characters in s, then decrement for t.",
+      "If all counts are zero at the end, the strings are anagrams."
+    ],
+    "tags": ["string", "hash-map", "sorting", "anagram"],
+    "supportedLanguages": ["javascript", "python", "java", "cpp"],
+    "functionSignature": {
+      "name": "isAnagram",
+      "params": ["s", "t"],
+      "returnType": "boolean"
+    },
+    "codeTemplate": {
+      "javascript": "/**\n * @param {string} s\n * @param {string} t\n * @return {boolean}\n */\nfunction isAnagram(s, t) {\n    // Your code here\n}",
+      "python": "def isAnagram(s, t):\n    # Your code here\n    pass",
+      "java": "class Solution {\n    public boolean isAnagram(String s, String t) {\n        // Your code here\n        return false;\n    }\n}",
+      "cpp": "#include <string>\n#include <unordered_map>\nusing namespace std;\n\nclass Solution {\npublic:\n    bool isAnagram(string s, string t) {\n        // Your code here\n        return false;\n    }\n};"
+    },
+    "examples": [
+      {
+        "input": "s = \"anagram\", t = \"nagaram\"",
+        "output": "true",
+        "explanation": "Both strings have the same character frequencies."
+      },
+      {
+        "input": "s = \"rat\", t = \"car\"",
+        "output": "false",
+        "explanation": "r-a-t and c-a-r have different characters."
+      }
+    ],
+    "testCases": [
+      {
+        "input": "anagram\nnagaram",
+        "expectedOutput": "true",
+        "explanation": "Both have same letter frequencies: a(3) n(1) g(1) r(1) m(1)",
+        "isHidden": false
+      },
+      {
+        "input": "rat\ncar",
+        "expectedOutput": "false",
+        "explanation": "r-a-t vs c-a-r: 'r' != 'c'",
+        "isHidden": false
+      },
+      {
+        "input": "listen\nsilent",
+        "expectedOutput": "true",
+        "explanation": "Same letters rearranged: l(1)i(1)s(1)t(1)e(1)n(1)",
+        "isHidden": false
+      },
+      { "input": "cat\nact",          "expectedOutput": "true",  "isHidden": true },
+      { "input": "evil\nvile",         "expectedOutput": "true",  "isHidden": true },
+      { "input": "night\nthing",       "expectedOutput": "true",  "isHidden": true },
+      { "input": "dusty\nstudy",       "expectedOutput": "true",  "isHidden": true },
+      { "input": "abc\ncba",           "expectedOutput": "true",  "isHidden": true },
+      { "input": "aabb\nbbaa",         "expectedOutput": "true",  "isHidden": true },
+      { "input": "a\na",               "expectedOutput": "true",  "isHidden": true },
+      { "input": "elbow\nbelow",       "expectedOutput": "true",  "isHidden": true },
+      { "input": "state\ntaste",       "expectedOutput": "true",  "isHidden": true },
+      { "input": "cider\ncried",       "expectedOutput": "true",  "isHidden": true },
+      { "input": "pots\nstop",         "expectedOutput": "true",  "isHidden": true },
+      { "input": "north\nthorn",       "expectedOutput": "true",  "isHidden": true },
+      { "input": "acts\ncats",         "expectedOutput": "true",  "isHidden": true },
+      { "input": "enlist\nlisten",     "expectedOutput": "true",  "isHidden": true },
+      { "input": "binary\nbrainy",     "expectedOutput": "true",  "isHidden": true },
+      { "input": "triangle\nintegral", "expectedOutput": "true",  "isHidden": true },
+      { "input": "apple\napple",       "expectedOutput": "true",  "isHidden": true },
+      { "input": "cinema\niceman",     "expectedOutput": "true",  "isHidden": true },
+      { "input": "secure\nrescue",     "expectedOutput": "true",  "isHidden": true },
+      { "input": "stressed\ndesserts", "expectedOutput": "true",  "isHidden": true },
+      { "input": "abcde\nedcba",       "expectedOutput": "true",  "isHidden": true },
+      { "input": "abc\nabc",           "expectedOutput": "true",  "isHidden": true },
+      { "input": "xyzzy\nyzzyx",       "expectedOutput": "true",  "isHidden": true },
+      { "input": "hello\nllheo",       "expectedOutput": "true",  "isHidden": true },
+      { "input": "world\ndlrow",       "expectedOutput": "true",  "isHidden": true },
+      { "input": "coding\ndocing",     "expectedOutput": "true",  "isHidden": true },
+      { "input": "python\nnohtyp",     "expectedOutput": "true",  "isHidden": true },
+      { "input": "string\ngrints",     "expectedOutput": "true",  "isHidden": true },
+      { "input": "hello\nworld",       "expectedOutput": "false", "isHidden": true },
+      { "input": "abc\nabcd",          "expectedOutput": "false", "isHidden": true },
+      { "input": "aa\nbb",             "expectedOutput": "false", "isHidden": true },
+      { "input": "a\nb",               "expectedOutput": "false", "isHidden": true },
+      { "input": "car\nrat",           "expectedOutput": "false", "isHidden": true },
+      { "input": "python\njython",     "expectedOutput": "false", "isHidden": true },
+      { "input": "apple\norange",      "expectedOutput": "false", "isHidden": true },
+      { "input": "test\nbest",         "expectedOutput": "false", "isHidden": true },
+      { "input": "code\nnode",         "expectedOutput": "false", "isHidden": true },
+      { "input": "ab\nbc",             "expectedOutput": "false", "isHidden": true },
+      { "input": "aa\na",              "expectedOutput": "false", "isHidden": true },
+      { "input": "abcd\nefgh",         "expectedOutput": "false", "isHidden": true },
+      { "input": "aaa\naab",           "expectedOutput": "false", "isHidden": true },
+      { "input": "listen\nsilents",    "expectedOutput": "false", "isHidden": true },
+      { "input": "java\njavaa",        "expectedOutput": "false", "isHidden": true },
+      { "input": "ab\nba",             "expectedOutput": "true",  "isHidden": true },
+      { "input": "bad\ndab",           "expectedOutput": "true",  "isHidden": true },
+      { "input": "xyz\nzyx",           "expectedOutput": "true",  "isHidden": true },
+      { "input": "moon\nnoom",         "expectedOutput": "true",  "isHidden": true },
+      { "input": "test\nttse",         "expectedOutput": "true",  "isHidden": true }
+    ]
+  }
+  ]
+}

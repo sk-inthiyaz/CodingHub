@@ -21,7 +21,7 @@ const AdminDashboard = () => {
 
   const fetchStats = async () => {
     try {
-      const response = await fetch('http://localhost:5000/api/streak/admin/stats', {
+      const response = await fetch(`${window.API_BASE_URL}/api/streak/admin/stats`, {
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('token')}`
         }
@@ -41,7 +41,7 @@ const AdminDashboard = () => {
 
   const fetchQuestions = async () => {
     try {
-      const response = await fetch('http://localhost:5000/api/questions/questions', {
+      const response = await fetch(`${window.API_BASE_URL}/api/questions/questions`, {
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('token')}`
         }
@@ -107,7 +107,7 @@ const AdminDashboard = () => {
       const firstQuestion = jsonPreview.questions[0];
       const isStreakFormat = firstQuestion && (firstQuestion.functionSignature || firstQuestion.level !== undefined);
       
-      let endpoint = 'http://localhost:5000/api/questions/bulk-import';
+      let endpoint = `${window.API_BASE_URL}/api/questions/bulk-import`;
       let payload = jsonPreview;
       
       if (isStreakFormat) {
@@ -116,11 +116,11 @@ const AdminDashboard = () => {
         // - Exactly 5 questions: use /api/streak/admin/daily (batch endpoint)
         if (jsonPreview.questions.length === 1) {
           // Single question upload
-          endpoint = 'http://localhost:5000/api/streak/admin/add';
+          endpoint = `${window.API_BASE_URL}/api/streak/admin/add`;
           payload = jsonPreview.questions[0];
         } else if (jsonPreview.questions.length === 5) {
           // Batch of 5 questions for today
-          endpoint = 'http://localhost:5000/api/streak/admin/daily';
+          endpoint = `${window.API_BASE_URL}/api/streak/admin/daily`;
           
           // Get today's date in local timezone (YYYY-MM-DD format)
           const today = new Date();
@@ -196,7 +196,7 @@ const AdminDashboard = () => {
     }
 
     try {
-      const response = await fetch('http://localhost:5000/api/questions/clear-all', {
+      const response = await fetch(`${window.API_BASE_URL}/api/questions/clear-all`, {
         method: 'DELETE',
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('token')}`

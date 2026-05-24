@@ -1,4 +1,12 @@
-const generatePromptForAI = (input, type) => {
+const categoryPrompts = {
+    general: 'Please provide a clear and helpful response.',
+    debugging: 'Help debug and fix the following issue:',
+    optimization: 'Analyze the following for performance optimization:',
+    explanation: 'Provide a detailed explanation of the following:',
+    implementation: 'Help implement the following:',
+};
+
+const generatePrompt = (input, type) => {
     const baseContext = `You are an expert programming AI assistant. Your responses should be clear, detailed, and educational. Focus on providing practical, working solutions with thorough explanations.`;
     
     if (type === 'generate') {
@@ -32,12 +40,12 @@ Format your response like this:
     }
 
     // Check if the input contains code
-    const containsCode = userInput.includes('```') || /^[\s{]*[class|function|import|const|let|var|public|private|def|#include]/.test(userInput);
+    const containsCode = input.includes('```') || /^[\s{]*[class|function|import|const|let|var|public|private|def|#include]/.test(input);
 
     if (containsCode) {
         return `${baseContext}
 Please analyze this code:
-${userInput}
+${input}
 
 Provide:
 1. A clear explanation of what the code does
@@ -47,9 +55,9 @@ Provide:
     }
 
     return `${baseContext}
-${categoryPrompts[category] || categoryPrompts['general']}
+${categoryPrompts['general']}
 
-Query: ${userInput}
+Query: ${input}
 
 Provide:
 1. A direct answer to the question

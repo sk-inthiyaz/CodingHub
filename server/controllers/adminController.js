@@ -1,8 +1,8 @@
-import StreakQuestion from "../models/StreakQuestion.js";
-import { validateProblemPayload, isAllowedReturnType } from "../utils/validator.js";
+const StreakQuestion = require("../models/StreakQuestion");
+const { validateProblemPayload, isAllowedReturnType, migrateReturnTypeIfNeeded } = require("../utils/validator");
 
 // ➕ Add Question
-export const addQuestion = async (req, res) => {
+const addQuestion = async (req, res) => {
   try {
     const question = await StreakQuestion.create(req.body);
     res.status(201).json(question);
@@ -11,8 +11,8 @@ export const addQuestion = async (req, res) => {
   }
 };
 
-// � Bulk Upload Streak Questions
-export const bulkUploadStreakQuestions = async (req, res) => {
+// 📦 Bulk Upload Streak Questions
+const bulkUploadStreakQuestions = async (req, res) => {
   try {
     const { questions, autoMigrate } = req.body;
 
@@ -45,7 +45,6 @@ export const bulkUploadStreakQuestions = async (req, res) => {
         // Strict returnType and template validation
         if (!questionData.functionSignature || !isAllowedReturnType(questionData.functionSignature.returnType)) {
           if (autoMigrate) {
-            const { migrateReturnTypeIfNeeded } = await import('../utils/validator.js');
             const { migrated } = migrateReturnTypeIfNeeded(questionData);
             if (!migrated || !isAllowedReturnType(questionData.functionSignature.returnType)) {
               const rt = questionData.functionSignature?.returnType;
@@ -164,8 +163,8 @@ export const bulkUploadStreakQuestions = async (req, res) => {
   }
 };
 
-// �📜 Get All Questions
-export const getQuestions = async (req, res) => {
+// 📜 Get All Questions
+const getQuestions = async (req, res) => {
   try {
     const questions = await StreakQuestion.find().sort({ date: -1 });
     res.json(questions);
@@ -175,7 +174,7 @@ export const getQuestions = async (req, res) => {
 };
 
 // 🗑️ Delete Question
-export const deleteQuestion = async (req, res) => {
+const deleteQuestion = async (req, res) => {
   try {
     const question = await StreakQuestion.findByIdAndDelete(req.params.id);
     if (!question) {
@@ -185,4 +184,11 @@ export const deleteQuestion = async (req, res) => {
   } catch (error) {
     res.status(500).json({ message: "Error deleting question", error });
   }
+};
+
+module.exports = {
+  addQuestion,
+  bulkUploadStreakQuestions,
+  getQuestions,
+  deleteQuestion
 };

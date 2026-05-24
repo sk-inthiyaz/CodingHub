@@ -18,16 +18,18 @@ router.get('/:language/:topic', auth, async (req, res) => {
             return res.json(cache[cacheKey].data);
         }
 
-        const query = `${language} programming ${topic} tutorial`;
+        // Use quoted language name to force exact match + specific topic
+        const query = `"${language}" ${topic} tutorial for beginners`;
         const response = await axios.get(`${BASE_URL}/search`, {
             params: {
                 key: YOUTUBE_API_KEY,
                 part: 'snippet',
                 q: query,
-                maxResults: 6,
+                maxResults: 9,
                 type: 'video',
+                order: 'relevance',
                 relevanceLanguage: 'en',
-                videoDefinition: 'high'
+                videoCategoryId: 27
             }
         });
 

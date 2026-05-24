@@ -11,7 +11,10 @@ const WatchTutorials = ({ language, topic }) => {
       try {
         setLoading(true);
         setError(null);
-        const response = await fetch(`${window.API_BASE_URL}/api/tutorials/${language}/${topic}`);
+        const token = localStorage.getItem('token');
+        const response = await fetch(`${window.API_BASE_URL}/api/tutorials/${language}/${topic}`, {
+          headers: token ? { Authorization: `Bearer ${token}` } : {}
+        });
         
         if (!response.ok) {
           throw new Error('Failed to fetch tutorials');

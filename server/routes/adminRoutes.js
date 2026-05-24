@@ -13,16 +13,16 @@ const { auth, isAdmin } = require('../middleware/auth');
 // ===============================
 
 // Add new streak question
-router.post('/add-question', addQuestion);
+router.post('/add-question', auth, isAdmin, addQuestion);
 
 // Bulk upload streak questions
 router.post('/streak/bulk-upload', auth, isAdmin, bulkUploadStreakQuestions);
 
 // Fetch all streak questions
-router.get('/get-questions', getQuestions);
+router.get('/get-questions', auth, isAdmin, getQuestions);
 
 // Delete a streak question
-router.delete('/delete-question/:id', deleteQuestion);
+router.delete('/delete-question/:id', auth, isAdmin, deleteQuestion);
 
 // ===============================
 // PRACTICE PROBLEMS ADMIN ROUTES

@@ -1,10 +1,11 @@
 const express = require('express');
 const ChatHistory = require('../models/ChatHistory');
 const mongoose = require('mongoose');
+const { auth } = require('../middleware/auth');
 const router = express.Router();
 
 // Get all chat histories for a user
-router.get('/:userId', async (req, res) => {
+router.get('/:userId', auth, async (req, res) => {
   try {
     const userId = req.params.userId;
     // Convert to ObjectId if valid
@@ -29,7 +30,7 @@ router.get('/:userId', async (req, res) => {
 });
 
 // Save a new chat history
-router.post('/', async (req, res) => {
+router.post('/', auth, async (req, res) => {
   try {
     console.log('POST /api/chat-history body:', req.body);
     let { userId, messages, title } = req.body;
@@ -64,12 +65,12 @@ router.post('/', async (req, res) => {
     res.status(201).json(chat);
   } catch (error) {
     console.error('Error saving chat history:', error);
-    res.status(500).json({ error: error.message, stack: error.stack });
+    res.status(500).json({ error: error.message });
   }
 });
 
 // Optionally: update a chat history (e.g., add messages)
-router.put('/:id', async (req, res) => {
+router.put('/:id', auth, async (req, res) => {
   try {
     const chat = await ChatHistory.findByIdAndUpdate(
       req.params.id,
@@ -83,7 +84,7 @@ router.put('/:id', async (req, res) => {
 });
 
 // Optionally: delete a chat history
-router.delete('/:id', async (req, res) => {
+router.delete('/:id', auth, async (req, res) => {
   try {
     await ChatHistory.findByIdAndDelete(req.params.id);
     res.json({ message: 'Chat history deleted' });

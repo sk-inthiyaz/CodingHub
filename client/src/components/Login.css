@@ -44,7 +44,6 @@
   border: 1px solid var(--border-color);
 }
 
-/* Left Side - Branding */
 .login-branding {
   flex: 0.8;
   background: url('./images/LoginImage.png') center/cover no-repeat;
@@ -52,9 +51,18 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  color: white;
+  color: var(--text-color, #f1f5f9);
   position: relative;
   overflow: hidden;
+}
+
+/* Dark overlay for readability on all themes */
+.login-branding::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, rgba(15, 23, 42, 0.75), rgba(30, 41, 59, 0.65));
+  z-index: 0;
 }
 
 .login-branding::before {
@@ -64,8 +72,9 @@
   right: -50%;
   width: 100%;
   height: 100%;
-  background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+  background: radial-gradient(circle, rgba(99, 102, 241, 0.15) 0%, transparent 70%);
   animation: pulse 4s ease-in-out infinite;
+  z-index: 1;
 }
 
 @keyframes pulse {
@@ -81,26 +90,26 @@
 
 .branding-content {
   position: relative;
-  z-index: 1;
+  z-index: 2;
   max-width: 300px;
 }
 
 .brand-icon {
   width: 60px;
   height: 60px;
-  background: rgba(255, 255, 255, 0.2);
+  background: rgba(99, 102, 241, 0.25);
   border-radius: 14px;
   display: flex;
   align-items: center;
   justify-content: center;
   margin-bottom: 20px;
   backdrop-filter: blur(10px);
-  border: 2px solid rgba(255, 255, 255, 0.3);
+  border: 2px solid rgba(99, 102, 241, 0.4);
 }
 
 .code-icon {
   font-size: 30px;
-  color: white;
+  color: #a5b4fc;
   animation: float 3s ease-in-out infinite;
 }
 
@@ -118,14 +127,16 @@
   font-weight: 800;
   margin-bottom: 10px;
   line-height: 1.2;
-  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+  color: #e2e8f0;
+  text-shadow: 0 2px 12px rgba(0, 0, 0, 0.4);
 }
 
 .brand-subtitle {
   font-size: 0.9rem;
   line-height: 1.5;
   margin-bottom: 25px;
-  opacity: 0.9;
+  color: #cbd5e1;
+  opacity: 0.95;
 }
 
 .brand-features {
@@ -138,22 +149,23 @@
   align-items: center;
   gap: 10px;
   padding: 10px;
-  background: rgba(255, 255, 255, 0.1);
+  background: rgba(99, 102, 241, 0.12);
   border-radius: 8px;
   backdrop-filter: blur(10px);
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  border: 1px solid rgba(99, 102, 241, 0.25);
   transition: all 0.3s ease;
   font-size: 0.85rem;
+  color: #e2e8f0;
 }
 
 .feature-item:hover {
-  background: rgba(255, 255, 255, 0.2);
+  background: rgba(99, 102, 241, 0.2);
   transform: translateX(5px);
 }
 
 .check-icon {
   font-size: 18px;
-  color: rgba(255, 255, 255, 0.9);
+  color: #a5b4fc;
   flex-shrink: 0;
 }
 

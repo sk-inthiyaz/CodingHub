@@ -125,7 +125,33 @@ function parseJavaErrors(stderr) {
     }
   }
 
-  if (errors.length === 0) return null;
+  // Handle Java runtime exceptions, e.g.:
+  // Exception in thread "main" java.util.NoSuchElementException
+  //   at Main.main(Main.java:5)
+  if (errors.length === 0) {
+    let exceptionLine = '';
+    let mainLine = 0;
+
+    for (const line of lines) {
+      if (!exceptionLine && /^Exception in thread|^\w+(?:\.\w+)*(?:Exception|Error):/.test(line)) {
+        exceptionLine = line.trim();
+      }
+
+      const mainMatch = line.match(/\((?:Main|Solution)\.java:(\d+)\)/);
+      if (mainMatch) {
+        mainLine = parseInt(mainMatch[1]);
+        break;
+      }
+    }
+
+    if (exceptionLine) {
+      const lineLabel = mainLine > 0 ? `Line ${mainLine}: ` : '';
+      return `${lineLabel}${exceptionLine}`;
+    }
+
+    return null;
+  }
+
   return formatErrors(errors, errors.length);
 }
 
@@ -225,11 +251,12 @@ function formatErrorForDisplay(stderr, language, userCode = '') {
   const parsedError = parseErrors(stderr, language);
   
   if (!parsedError) {
+    // Can't structured-parse the stderr — show the raw text so the user sees the actual error
     return {
       success: false,
-      hasError: false,
-      errorMessage: 'Unknown error occurred',
-      fullError: stderr || 'No error details available'
+      hasError: true,
+      errorMessage: stderr || 'No error output captured',
+      fullError: stderr || ''
     };
   }
 

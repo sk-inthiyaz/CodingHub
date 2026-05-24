@@ -59,15 +59,23 @@ function buildSigRegexes(signature, returnTypeToken) {
   const { name, params } = signature;
   const paramList = params.join('\\s*,\\s*');
   const javaRet = mapReturnType('java', returnTypeToken) || 'int';
-  const cppRet = mapReturnType('cpp', returnTypeToken) || 'int';
+  const cppRet  = mapReturnType('cpp',  returnTypeToken) || 'int';
+
+  // Escape regex metacharacters in return-type strings
+  // Critical for C++ types like vector<int>, vector<vector<int>>, etc.
+  const escRe = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  const javaRetEsc = escRe(javaRet);
+  const cppRetEsc  = escRe(cppRet);
+
   return {
-    js: new RegExp(`function\\s+${name}\\s*\\(\\s*${params.length ? paramList : ''}\\s*\\)`),
+    js:      new RegExp(`function\\s+${name}\\s*\\(\\s*${params.length ? paramList : ''}\\s*\\)`),
     jsClass: new RegExp(`class\\s+Solution[\\s\\S]*?${name}\\s*\\(\\s*${params.length ? paramList : ''}\\s*\\)`),
-    py: new RegExp(`def\\s+${name}\\s*\\(\\s*${params.length ? params.join('\\s*,\\s*') : ''}\\s*\\)\\s*:`),
-    java: new RegExp(`class\\s+Solution[\\s\\S]*?public\\s+${javaRet}\\s+${name}\\s*\\(`),
-    cpp: new RegExp(`class\\s+Solution[\\s\\S]*?${cppRet}\\s+${name}\\s*\\(`)
+    py:      new RegExp(`def\\s+${name}\\s*\\(\\s*${params.length ? params.join('\\s*,\\s*') : ''}\\s*\\)\\s*:`),
+    java:    new RegExp(`class\\s+Solution[\\s\\S]*?public\\s+${javaRetEsc}\\s+${name}\\s*\\(`),
+    cpp:     new RegExp(`class\\s+Solution[\\s\\S]*?${cppRetEsc}\\s+${name}\\s*\\(`)
   };
 }
+
 
 function validateProblemPayload(problem) {
   const errors = [];

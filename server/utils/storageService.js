@@ -76,8 +76,8 @@ async function generatePresignedUrl(storageKey, userId) {
     const payload = `${storageKey}:${userId}:${expiry}`;
     const signature = crypto.createHmac('sha256', secret).update(payload).digest('hex');
     const token = Buffer.from(`${payload}:${signature}`).toString('base64url');
-    // Return a URL that the backend will handle
-    return `http://localhost:5000/api/submissions/view/${token}`;
+    const backendUrl = process.env.BACKEND_URL || 'http://localhost:5000';
+    return `${backendUrl}/api/submissions/view/${token}`;
   }
 
   // TODO: S3/GCS presigned URL generation
