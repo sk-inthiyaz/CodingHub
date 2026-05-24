@@ -4,6 +4,12 @@ import './index.css';
 import './styles/theme.css';
 import App from './App';
 
+window.API_BASE_URL = process.env.REACT_APP_API_URL || (
+  window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+    ? 'http://localhost:5000'
+    : 'https://codinghub-backend.onrender.com'
+);
+
 // Suppress ResizeObserver error from Monaco Editor
 const resizeObserverErr = window.console.error;
 window.console.error = (...args) => {
