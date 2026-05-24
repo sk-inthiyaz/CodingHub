@@ -16,7 +16,7 @@ const PracticeDashboard = () => {
     setLoading(true);
     try {
       const token = localStorage.getItem('token');
-      const res = await fetch('http://localhost:5000/api/practice/stats', {
+      const res = await fetch(`${window.API_BASE_URL}/api/practice/stats`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
 
