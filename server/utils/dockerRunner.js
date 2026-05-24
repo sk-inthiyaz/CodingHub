@@ -1,37 +1,37 @@
-const { exec } = require('child_process');
+const { execFile } = require('child_process');
 const fs = require('fs');
 const path = require('path');
 const { v4: uuidv4 } = require('uuid');
 
 // Supported languages and their Docker images/commands
-// Using alpine variants for smaller size and faster pulls
 const languageConfigs = {
   javascript: {
     image: 'node:20-alpine',
     extension: 'js',
-    runCmd: (filename) => `node /code/${filename}`
+    getCmd: (filename) => `node /code/${filename}`
   },
   python: {
     image: 'python:3.11-alpine',
     extension: 'py',
-    runCmd: (filename) => `python /code/${filename}`
+    getCmd: (filename) => `python /code/${filename}`
   },
   java: {
-    image: 'openjdk:17-alpine',
+    image: 'eclipse-temurin:17-alpine',
     extension: 'java',
-    runCmd: (filename) => `javac /code/${filename} && java -cp /code Main`
+    // Compile with javac, then run. Both steps needed.
+    getCmd: (filename) => `javac /code/${filename} && java -cp /code Main`
   },
   cpp: {
     image: 'gcc:latest',
     extension: 'cpp',
-    runCmd: (filename) => `g++ /code/${filename} -o /code/a.out && /code/a.out`
+    getCmd: (filename, outfile) => `g++ /code/${filename} -o /code/${outfile} && /code/${outfile}`
   }
 };
 
 function normalizeLanguage(lang) {
   if (!lang) return 'javascript';
-  const l = String(lang).toLowerCase();
-  if (l === 'c++' || l === 'cplus' || l === 'c plus plus') return 'cpp';
+  const l = String(lang).toLowerCase().trim();
+  if (l === 'c++' || l === 'cplus' || l === 'cplusplus') return 'cpp';
   if (l === 'js' || l === 'node' || l === 'javascript') return 'javascript';
   if (l === 'py' || l === 'python') return 'python';
   if (l === 'java') return 'java';
@@ -45,66 +45,107 @@ function ensureDir(dir) {
   }
 }
 
+function normalizeStdinInput(input) {
+  if (input === undefined || input === null) return '';
+  const raw = (typeof input === 'string') ? input : JSON.stringify(input);
+  // Users often type "5\\n10" in a single-line input box — convert escaped sequences
+  return raw
+    .replace(/\\r\\n/g, '\n')
+    .replace(/\\n/g, '\n')
+    .replace(/\\t/g, '\t');
+}
+
 /**
  * Runs code in a Docker container for the given language and input.
+ * Uses execFile (not exec) to bypass the Windows cmd.exe shell entirely.
+ * Docker args are passed as a proper array — no shell escaping needed.
+ *
  * @param {string} code - The code to execute
  * @param {string} language - One of 'javascript', 'python', 'java', 'cpp'
- * @param {string} input - The input to pass to stdin
- * @param {number} [timeout=5] - Timeout in seconds
+ * @param {string} input - stdin to pipe into the container
+ * @param {number} [timeout=10] - Timeout in seconds (passed to BusyBox timeout inside container)
  * @returns {Promise<{stdout: string, stderr: string, exitCode: number}>}
  */
-async function runCodeInDocker(code, language, input, timeout = 5) {
+async function runCodeInDocker(code, language, input, timeout = 10) {
   const lang = normalizeLanguage(language);
   if (!languageConfigs[lang]) {
-    throw new Error('Unsupported language');
+    throw new Error(`Unsupported language: ${language}`);
   }
   const config = languageConfigs[lang];
+
   const tempDir = path.join(__dirname, '../../temp_code');
   ensureDir(tempDir);
 
-  // Java must have class name matching file name; we'll enforce Main.java
-  // For C++, use unique output name to avoid caching issues
-  const baseName = (lang === 'java') ? 'Main' : uuidv4();
-  const filename = `${baseName}.${config.extension}`;
-  const outfileName = (lang === 'cpp') ? `${baseName}.out` : 'a.out'; // Use unique name for C++
-  const filepath = path.join(tempDir, filename);
-  const outpath = path.join(tempDir, outfileName);
-  fs.writeFileSync(filepath, code);
+  // Use unique subdirectory per execution to prevent concurrency issues (especially Java)
+  const execId = uuidv4();
+  const execDir = path.join(tempDir, execId);
+  ensureDir(execDir);
 
-  // Mount tempDir as /code in the container
-  // -i keeps STDIN open so we can pipe input; wrap inner command in double quotes for cross-shell
-  // Use numeric seconds without suffix for compatibility with BusyBox (Alpine) and GNU timeout
-  const cppRunCmd = (lang === 'cpp') ? 
-    `g++ /code/${filename} -o /code/${outfileName} && /code/${outfileName}` :
-    config.runCmd(filename);
-  const innerCmd = `timeout ${timeout} ${cppRunCmd}`;
-  const dockerCmd = [
-    'docker run --rm -i',
-    `-m 128m --cpus=0.5`,
-    `-v "${tempDir}:/code"`,
-    `${config.image}`,
-    '/bin/sh -lc',
-    `"${innerCmd.replace(/"/g, '\\"')}"`
-  ].join(' ');
+  // Java: class name must match filename → always 'Main.java'
+  // C++: use unique filenames to avoid concurrent execution conflicts
+  const baseName = (lang === 'java') ? 'Main' : execId;
+  const filename = `${baseName}.${config.extension}`;
+  const outfileName = (lang === 'cpp') ? `${baseName}.out` : null;
+  const filepath = path.join(execDir, filename);
+
+  // Write user code to temp file
+  fs.writeFileSync(filepath, code, 'utf8');
+
+  // Build the shell command to run INSIDE the container.
+  // This is a single string passed as the argument to `sh -c`.
+  // No Windows-side escaping needed because execFile passes it directly as a Docker arg.
+  const innerCmd = (lang === 'cpp')
+    ? config.getCmd(filename, outfileName)
+    : config.getCmd(filename);
+
+  // Wrap with timeout (BusyBox/Alpine compatible numeric seconds, no suffix)
+  const timedCmd = `timeout ${timeout} sh -c "${innerCmd.replace(/"/g, '\\"')}"`;
+
+  // Build docker args array — execFile receives these directly, no shell parsing
+  const dockerArgs = [
+    'run', '--rm', '-i',
+    '--network', 'none',
+    '-m', '128m',
+    '--cpus', '0.5',
+    '-v', `${execDir}:/code`,
+    config.image,
+    'sh', '-c', timedCmd
+  ];
+
+  console.log('[dockerRunner] docker', dockerArgs.join(' '));
 
   return new Promise((resolve) => {
-    const child = exec(dockerCmd, { maxBuffer: 1024 * 1024 }, (error, stdout, stderr) => {
-      // Clean up temp files (both source and compiled output for C++)
-      try { fs.unlinkSync(filepath); } catch {}
-      if (lang === 'cpp') {
-        try { fs.unlinkSync(outpath); } catch {}
-      }
+    // Node-level timeout = container timeout + 5s grace period
+    const execTimeout = (timeout + 5) * 1000;
+
+    const child = execFile('docker', dockerArgs, {
+      maxBuffer: 1024 * 1024,
+      timeout: execTimeout
+    }, (error, stdout, stderr) => {
+      // Cleanup entire execution directory
+      try { fs.rmSync(execDir, { recursive: true, force: true }); } catch {}
+
+      // error.code = numeric exit code, or null/undefined if killed by signal
+      const exitCode = error
+        ? (typeof error.code === 'number' ? error.code : 1)
+        : 0;
+
+      console.log('[dockerRunner] exitCode:', exitCode, '| stderr:', stderr?.slice(0, 200));
+
       resolve({
-        stdout: stdout.trim(),
-        stderr: stderr.trim(),
-        exitCode: error && error.code ? error.code : 0
+        stdout: (stdout || '').trim(),
+        stderr: (stderr || '').trim(),
+        exitCode
       });
     });
-    if (typeof input !== 'undefined' && input !== null) {
-      const inputStr = (typeof input === 'string') ? input : JSON.stringify(input);
+
+    // Always close stdin so the subprocess receives EOF immediately.
+    // Without this, Scanner/input()/cin will block forever waiting for more data.
+    const inputStr = normalizeStdinInput(input);
+    if (inputStr.length > 0) {
       child.stdin.write(inputStr.endsWith('\n') ? inputStr : inputStr + '\n');
-      child.stdin.end();
     }
+    child.stdin.end();
   });
 }
 

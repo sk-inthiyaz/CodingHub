@@ -15,9 +15,9 @@ router.get('/test-gemini', async (req, res) => {
             }]
         };
 
-        console.log('[DEBUG] Testing Gemini API with URL:', `${GEMINI_URL}?key=${API_KEY}`);
+        console.log('[DEBUG] Testing Gemini API with URL:', GEMINI_URL);
         
-        const response = await axios.post(`${GEMINI_URL}?key=${API_KEY}`, testPrompt, {
+        const response = await axios.post(GEMINI_URL, testPrompt, {
             headers: {
                 'Content-Type': 'application/json'
             }

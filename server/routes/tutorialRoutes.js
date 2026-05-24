@@ -2,12 +2,13 @@ const express = require('express');
 const axios = require('axios');
 const router = express.Router();
 const { YOUTUBE_API_KEY, BASE_URL } = require('../config/youtubeConfig');
+const { auth } = require('../middleware/auth');
 
 // Cache object to store video results
 const cache = {};
 const CACHE_DURATION = 3600000; // 1 hour in milliseconds
 
-router.get('/:language/:topic', async (req, res) => {
+router.get('/:language/:topic', auth, async (req, res) => {
     try {
         const { language, topic } = req.params;
         const cacheKey = `${language}-${topic}`;
