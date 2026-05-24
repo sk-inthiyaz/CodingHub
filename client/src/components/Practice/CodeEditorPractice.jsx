@@ -15,7 +15,6 @@ const CodeEditorPractice = () => {
   
   const [code, setCode] = useState(defaultCode.javascript);
   const [language, setLanguage] = useState('javascript');
-  // STDIN captured from the terminal panel (replaces old custom input box)
   const [stdin, setStdin] = useState('');
   const [output, setOutput] = useState(null);
   const [running, setRunning] = useState(false);
@@ -56,6 +55,18 @@ const CodeEditorPractice = () => {
       });
     }
   }, []);
+
+  // Detect if code likely reads from stdin so we can show a proactive hint
+  const codeLikelyNeedsStdin = (src, lang) => {
+    if (!src || !lang) return false;
+    const s = String(src);
+    const l = String(lang).toLowerCase();
+    if (l === 'java') return /Scanner\s+\w+\s*=\s*new\s+Scanner\s*\(\s*System\.in\s*\)|System\.in/.test(s);
+    if (l === 'python') return /\binput\s*\(/.test(s);
+    if (l === 'cpp') return /\bcin\s*>>|\bgetline\s*\(\s*cin\s*,/.test(s);
+    if (l === 'javascript') return /process\.stdin|readline\s*\./.test(s);
+    return false;
+  };
 
   const handleDownload = () => {
     const extension = { javascript: 'js', python: 'py', java: 'java', cpp: 'cpp' }[language];
@@ -111,7 +122,7 @@ const CodeEditorPractice = () => {
         hasStdin: !!stdin
       });
 
-      const res = await fetch('http://localhost:5000/api/practice/editor/run', {
+      const res = await fetch(`${window.API_BASE_URL}/api/practice/editor/run`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -177,7 +188,7 @@ const CodeEditorPractice = () => {
     setAiFeedback(null);
     try {
       const token = localStorage.getItem('token');
-      const res = await fetch('http://localhost:5000/api/practice/analyze', {
+      const res = await fetch(`${window.API_BASE_URL}/api/practice/analyze`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -319,11 +330,12 @@ const CodeEditorPractice = () => {
 
           <div className="modal-content-terminal">
             <div className="stdin-row">
-              <input
+              <textarea
                 className="stdin-input"
                 value={stdin}
                 onChange={(e) => setStdin(e.target.value)}
-                placeholder="stdin (optional, e.g., '5\n10' for multiple lines)"
+                rows={2}
+                placeholder="stdin (optional). Use Enter for multiple lines (or type \\n)."
               />
             </div>
 
@@ -535,7 +547,7 @@ const CodeEditorPractice = () => {
             >
               {running ? (
                 <>
-                  <span className="loading-spinner"></span> Running...
+                  <span className="btn-loading-spinner"></span> Running...
                 </>
               ) : (
                 <>▶ Run</>
@@ -549,7 +561,7 @@ const CodeEditorPractice = () => {
             >
               {analyzing ? (
                 <>
-                  <span className="loading-spinner"></span> Analyzing...
+                  <span className="btn-loading-spinner"></span> Analyzing...
                 </>
               ) : (
                 <>🤖 Analyze</>
@@ -573,13 +585,30 @@ const CodeEditorPractice = () => {
               </button>
             </div>
             <div className="stdin-row">
-              <input
+              <textarea
                 className="stdin-input"
                 value={stdin}
                 onChange={(e) => setStdin(e.target.value)}
-                placeholder="stdin (optional, e.g., '5\n10' for multiple lines)"
+                rows={2}
+                placeholder="Enter program input here (stdin). Each value on a new line. Example: '5' or '5\n10\n15'"
               />
             </div>
+            {codeLikelyNeedsStdin(code, language) && !stdin.trim() && (
+              <div style={{
+                margin: '0 0 0.5rem 0',
+                padding: '0.4rem 0.75rem',
+                background: '#7c3aed22',
+                border: '1px solid #7c3aed55',
+                borderRadius: '6px',
+                fontSize: '0.78rem',
+                color: '#a78bfa',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.4rem'
+              }}>
+                ⚠️ Your code reads from stdin — enter input above before running, or it will fail with NoSuchElementException / EOF.
+              </div>
+            )}
 
             {!output ? (
               <div className="feedback-empty">
