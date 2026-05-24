@@ -13,24 +13,18 @@ const Login = () => {
   const navigate = useNavigate();
   const { login } = useAuth();
   
-  const ADMIN_EMAIL = 'admin@codinghub.com';
-  const ADMIN_PASSWORD = '0000';
-
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsLoading(true);
     setError(null);
     
     try {
-      // Check if the credentials match admin credentials
-      const isAdmin = email === ADMIN_EMAIL && password === ADMIN_PASSWORD;
-
-      const response = await fetch('http://localhost:5000/api/auth/login', {
+      const response = await fetch(`${window.API_BASE_URL}/api/auth/login`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ email, password, isAdmin }),
+        body: JSON.stringify({ email, password }),
       });
 
       const data = await response.json();
@@ -50,7 +44,7 @@ const Login = () => {
       if (data.user.isAdmin) {
         navigate('/admin/dashboard');
       } else {
-        navigate('/');
+        navigate('/chat');
       }
     } catch (error) {
       console.error('Login error:', error);
