@@ -58,7 +58,7 @@ const NewDiscussionPage = ({ isDark }) => {
         .filter(tag => tag !== '');
 
       const response = await axios.post(
-        'http://localhost:5000/api/discussions',
+        `${window.API_BASE_URL}/api/discussions`,
         {
           title: formData.title,
           content: formData.content,
