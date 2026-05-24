@@ -35,33 +35,21 @@ const AdminPracticeProblems = () => {
   const fetchProblems = async () => {
     try {
       const token = localStorage.getItem('token');
-      console.log('🔄 Fetching problems...');
-      console.log('Token exists:', !!token);
-      
-      const res = await fetch('http://localhost:5000/api/practice/problems/all', {
+      const res = await fetch(`${window.API_BASE_URL}/api/practice/problems/all`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
-      
-      console.log('📊 Response status:', res.status, res.statusText);
-      
+
       if (res.ok) {
         const data = await res.json();
-        console.log('✅ Fetched problems:', data.problems?.length, 'problems');
-        console.log('Problems data:', data);
         setProblems(data.problems || []);
       } else {
-        const errorData = await res.json().catch(() => ({ message: 'Could not parse error response' }));
-        console.error('❌ Failed to fetch problems:', {
-          status: res.status,
-          statusText: res.statusText,
-          error: errorData,
-          fullError: errorData.details || errorData.message
-        });
-        setProblems([]);
+        const errorData = await res.json().catch(() => ({}));
+        console.error('❌ Failed to fetch problems:', res.status, errorData);
+        // ✅ Do NOT wipe existing problems on a transient error
       }
     } catch (err) {
       console.error('Error fetching problems:', err);
-      setProblems([]);
+      // ✅ Keep existing list — don't set to []
     }
   };
 
@@ -70,7 +58,7 @@ const AdminPracticeProblems = () => {
     try {
       const token = localStorage.getItem('token');
       console.log('📊 Fetching stats...');
-      const res = await fetch('http://localhost:5000/api/practice/admin/stats', {
+      const res = await fetch(`${window.API_BASE_URL}/api/practice/admin/stats`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       if (res.ok) {
@@ -156,30 +144,42 @@ const AdminPracticeProblems = () => {
     setLoading(true);
     try {
       const token = localStorage.getItem('token');
-      const res = await fetch('http://localhost:5000/api/practice/admin/upload-problems', {
+      const res = await fetch(`${window.API_BASE_URL}/api/practice/admin/upload-problems`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${token}`
         },
-        body: JSON.stringify({ problems: jsonPreview.problems })
+        // ✅ Always pass replaceExisting:true so re-uploads update instead of silently skip
+        body: JSON.stringify({ problems: jsonPreview.problems, replaceExisting: true })
       });
 
       if (res.ok) {
         const result = await res.json();
-        console.log('✅ Upload successful:', result);
-        
-        toast.success(`✅ ${expectedCount} problem(s) uploaded successfully!`);
+        const successCount = result.results?.success?.length ?? 0;
+        const skippedCount = result.results?.skipped?.length ?? 0;
+        const failedCount  = result.results?.failed?.length  ?? 0;
+
+        if (failedCount > 0) {
+          const failedNames = result.results.failed.map(f => f.title || f).join(', ');
+          toast.error(`⚠️ ${failedCount} problem(s) failed: ${failedNames}`);
+          setError(`Failed: ${failedNames}`);
+        } else if (skippedCount > 0) {
+          toast(`⚠️ ${skippedCount} problem(s) skipped (already exist). ${successCount} uploaded.`);
+        } else {
+          toast.success(`✅ ${successCount} problem(s) uploaded successfully!`);
+        }
+
         setUploadCount('');
         setJsonPreview(null);
         setError('');
-        
-        // Add small delay to ensure database is updated before fetching
+
+        // Refresh list after short delay to let DB settle
         setTimeout(() => {
           fetchProblems();
           fetchStats();
-          setActiveTab('history'); // Switch to history tab to see uploaded problems
-        }, 500);
+          setActiveTab('history');
+        }, 600);
       } else {
         const data = await res.json();
         console.error('❌ Upload failed:', data);
@@ -198,7 +198,7 @@ const AdminPracticeProblems = () => {
 
     try {
       const token = localStorage.getItem('token');
-      const res = await fetch(`http://localhost:5000/api/practice/admin/problems/${problemId}`, {
+      const res = await fetch(`${window.API_BASE_URL}/api/practice/admin/problems/${problemId}`, {
         method: 'DELETE',
         headers: { 'Authorization': `Bearer ${token}` }
       });
@@ -227,7 +227,7 @@ const AdminPracticeProblems = () => {
 
     try {
       const token = localStorage.getItem('token');
-      const res = await fetch(`http://localhost:5000/api/practice/admin/problems/${editingProblem._id}`, {
+      const res = await fetch(`${window.API_BASE_URL}/api/practice/admin/problems/${editingProblem._id}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
