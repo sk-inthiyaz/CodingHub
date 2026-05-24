@@ -28,7 +28,7 @@ const DiscussionDetailPage = ({ isDark }) => {
       setLoading(true);
       const token = localStorage.getItem('token');
       const response = await axios.get(
-        `http://localhost:5000/api/discussions/${id}`,
+        `${window.API_BASE_URL}/api/discussions/${id}`,
         { headers: { Authorization: `Bearer ${token}` } }
       );
 
@@ -50,7 +50,7 @@ const DiscussionDetailPage = ({ isDark }) => {
     try {
       const token = localStorage.getItem('token');
       const response = await axios.post(
-        `http://localhost:5000/api/discussions/${id}/vote`,
+        `${window.API_BASE_URL}/api/discussions/${id}/vote`,
         { voteType },
         { headers: { Authorization: `Bearer ${token}` } }
       );
@@ -68,7 +68,7 @@ const DiscussionDetailPage = ({ isDark }) => {
     try {
       const token = localStorage.getItem('token');
       await axios.post(
-        `http://localhost:5000/api/discussions/comments/${commentId}/vote`,
+        `${window.API_BASE_URL}/api/discussions/comments/${commentId}/vote`,
         { voteType },
         { headers: { Authorization: `Bearer ${token}` } }
       );
@@ -91,7 +91,7 @@ const DiscussionDetailPage = ({ isDark }) => {
     try {
       const token = localStorage.getItem('token');
       await axios.post(
-        `http://localhost:5000/api/discussions/${id}/comments`,
+        `${window.API_BASE_URL}/api/discussions/${id}/comments`,
         {
           content: newComment,
           parentCommentId: replyTo
@@ -116,7 +116,7 @@ const DiscussionDetailPage = ({ isDark }) => {
     try {
       const token = localStorage.getItem('token');
       await axios.delete(
-        `http://localhost:5000/api/discussions/comments/${commentId}`,
+        `${window.API_BASE_URL}/api/discussions/comments/${commentId}`,
         { headers: { Authorization: `Bearer ${token}` } }
       );
 
@@ -131,7 +131,7 @@ const DiscussionDetailPage = ({ isDark }) => {
     try {
       const token = localStorage.getItem('token');
       await axios.put(
-        `http://localhost:5000/api/discussions/${id}`,
+        `${window.API_BASE_URL}/api/discussions/${id}`,
         editData,
         { headers: { Authorization: `Bearer ${token}` } }
       );
@@ -150,7 +150,7 @@ const DiscussionDetailPage = ({ isDark }) => {
     try {
       const token = localStorage.getItem('token');
       await axios.delete(
-        `http://localhost:5000/api/discussions/${id}`,
+        `${window.API_BASE_URL}/api/discussions/${id}`,
         { headers: { Authorization: `Bearer ${token}` } }
       );
 
@@ -165,7 +165,7 @@ const DiscussionDetailPage = ({ isDark }) => {
     try {
       const token = localStorage.getItem('token');
       await axios.put(
-        `http://localhost:5000/api/discussions/${id}/solved`,
+        `${window.API_BASE_URL}/api/discussions/${id}/solved`,
         {},
         { headers: { Authorization: `Bearer ${token}` } }
       );
