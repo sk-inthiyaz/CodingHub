@@ -39,7 +39,7 @@ const SettingsPage = () => {
   const loadUserSettings = async () => {
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch('http://localhost:5000/api/settings', {
+      const response = await fetch(`${window.API_BASE_URL}/api/settings`, {
         headers: {
           'Authorization': `Bearer ${token}`
         }
@@ -82,7 +82,7 @@ const SettingsPage = () => {
 
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch('http://localhost:5000/api/settings/change-password', {
+      const response = await fetch(`${window.API_BASE_URL}/api/settings/change-password`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -121,7 +121,7 @@ const SettingsPage = () => {
 
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch('http://localhost:5000/api/settings/notifications', {
+      const response = await fetch(`${window.API_BASE_URL}/api/settings/notifications`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -162,7 +162,7 @@ const SettingsPage = () => {
 
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch('http://localhost:5000/api/settings/delete-account', {
+      const response = await fetch(`${window.API_BASE_URL}/api/settings/delete-account`, {
         method: 'DELETE',
         headers: {
           'Authorization': `Bearer ${token}`
