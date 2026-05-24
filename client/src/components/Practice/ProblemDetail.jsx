@@ -42,7 +42,7 @@ const ProblemDetail = () => {
     setLoading(true);
     try {
       const token = localStorage.getItem('token');
-      const res = await fetch(`http://localhost:5000/api/practice/problems/${id}`, {
+      const res = await fetch(`${window.API_BASE_URL}/api/practice/problems/${id}`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
 
@@ -65,7 +65,7 @@ const ProblemDetail = () => {
     setRunResults(null);
     try {
       const token = localStorage.getItem('token');
-      const res = await fetch('http://localhost:5000/api/practice/editor/run', {
+      const res = await fetch(`${window.API_BASE_URL}/api/practice/editor/run`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -91,33 +91,42 @@ const ProblemDetail = () => {
   const handleSubmit = async () => {
     setSubmitting(true);
     setResults(null);
+    const savedCode = code; // ✅ FIX 4: snapshot code before async call
     try {
       const token = localStorage.getItem('token');
-      const res = await fetch(`http://localhost:5000/api/practice/problems/${id}/submit`, {
+      const res = await fetch(`${window.API_BASE_URL}/api/practice/problems/${id}/submit`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${token}`
         },
-        body: JSON.stringify({ code, language })
+        body: JSON.stringify({ code: savedCode, language })
       });
 
       const data = await res.json();
       setResults(data);
-      
+      // ✅ FIX 4: code state is untouched — no setCode() call here
+
       // Add to submission history
       setSubmissionHistory(prev => [{
         ...data,
         timestamp: new Date().toISOString(),
-        language: language
+        language: language,
+        code: savedCode
       }, ...prev]);
-      
+
       // Auto-switch to Submissions tab
       setActiveDescriptionTab('submissions');
 
-      // Refresh problem to update solved status
+      // Refresh problem to update solved status (without touching code state)
       if (data.success) {
-        setTimeout(fetchProblem, 500);
+        const token2 = localStorage.getItem('token');
+        fetch(`${window.API_BASE_URL}/api/practice/problems/${id}`, {
+          headers: { 'Authorization': `Bearer ${token2}` }
+        }).then(r => r.json()).then(d => {
+          // Only update problem meta — do NOT call setCode
+          setProblem(prev => ({ ...prev, isSolved: d.isSolved, acceptanceRate: d.acceptanceRate }));
+        }).catch(() => {});
       }
     } catch (error) {
       console.error('Error submitting solution:', error);
@@ -330,14 +339,20 @@ const ProblemDetail = () => {
                     )}
                   </div>
 
+                  {/* ✅ FIX 1: Total test cases passed count */}
+                  <div className="test-summary-banner">
+                    <span className={`test-count-badge ${results.success ? 'all-passed' : 'some-failed'}`}>
+                      {results.passedTests != null
+                        ? `${results.passedTests} / ${results.totalTests} test cases passed`
+                        : results.success
+                          ? 'All test cases passed'
+                          : 'Some test cases failed'}
+                    </span>
+                  </div>
+
                   {/* Test Results */}
                   {results.testResults && results.testResults.length > 0 && (
                     <div className="test-results-section">
-                      <div className="test-summary">
-                        <span className="test-count">
-                          {results.passedTests}/{results.totalTests} test cases passed
-                        </span>
-                      </div>
                       <div className="test-results-list">
                         {results.testResults.map((test, idx) => (
                           <div
@@ -528,18 +543,30 @@ const ProblemDetail = () => {
         {/* Public Test Cases Section */}
         {problem.testCases && problem.testCases.filter(tc => !tc.isHidden).length > 0 && !isTestCasesCollapsed && (
           <div className="test-cases-container">
+            {/* ✅ FIX 2: green tabs when all public tests pass */}
             <div className="test-cases-tabs">
               {problem.testCases
                 .filter(tc => !tc.isHidden)
-                .map((testCase, idx) => (
-                  <button
-                    key={idx}
-                    className={`test-case-tab ${activeTestCaseTab === idx ? 'active' : ''}`}
-                    onClick={() => setActiveTestCaseTab(idx)}
-                  >
-                    Test Case {idx + 1}
-                  </button>
-                ))}
+                .map((testCase, idx) => {
+                  const tcResult = runResults?.testResults?.[idx];
+                  const tabClass = [
+                    'test-case-tab',
+                    activeTestCaseTab === idx ? 'active' : '',
+                    tcResult?.passed === true  ? 'tab-passed' : '',
+                    tcResult?.passed === false ? 'tab-failed' : ''
+                  ].filter(Boolean).join(' ');
+                  return (
+                    <button
+                      key={idx}
+                      className={tabClass}
+                      onClick={() => setActiveTestCaseTab(idx)}
+                    >
+                      {tcResult?.passed === true && <span className="tab-dot passed-dot">●</span>}
+                      {tcResult?.passed === false && <span className="tab-dot failed-dot">●</span>}
+                      Test Case {idx + 1}
+                    </button>
+                  );
+                })}
             </div>
 
             <div className="test-case-content">
