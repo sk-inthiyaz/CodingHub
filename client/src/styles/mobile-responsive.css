@@ -110,8 +110,8 @@
   .chatpage-root { overflow: hidden; }
   .heading-container { padding: 4px 0 !important; margin-top: 4px !important; }
   .chatpage-title-fixed {
-    font-size: 15px !important;
-    padding: 6px 16px !important;
+    font-size: 14px !important;
+    padding: 6px 14px !important;
   }
   .chatpage-main {
     padding: 0 6px 6px !important;
@@ -127,16 +127,30 @@
   }
   .input-box-fixed {
     border-radius: 0 0 12px 12px !important;
-    padding: 10px 12px 14px !important;
+    padding: 10px 10px 14px !important;
   }
   .chat-box-fixed {
     padding: 12px !important;
   }
+  /* KEY FIX: stack textarea above controls */
+  .input-row {
+    flex-direction: column !important;
+    gap: 8px !important;
+    align-items: stretch !important;
+  }
   .chatpage-textarea {
+    width: 100% !important;
+    min-width: 100% !important;
+    max-width: 100% !important;
     min-height: 60px !important;
     max-height: 100px !important;
-    font-size: 0.88rem !important;
+    font-size: 0.9rem !important;
     padding: 10px 14px !important;
+    font-family: 'Inter', sans-serif !important;
+    line-height: 1.5 !important;
+    word-wrap: break-word !important;
+    overflow-wrap: break-word !important;
+    box-sizing: border-box !important;
   }
   .controls-column {
     width: 100% !important;
@@ -146,15 +160,17 @@
   .mode-select {
     flex: 1 !important;
     font-size: 12px !important;
-    padding: 8px !important;
+    padding: 8px 10px !important;
+    min-width: 0 !important;
   }
   .sendbtn-fixed {
+    flex: 1.5 !important;
     height: 38px !important;
     font-size: 13px !important;
   }
   .radio-mode-container {
     flex-direction: column !important;
-    gap: 8px !important;
+    gap: 6px !important;
   }
   .radio-options {
     gap: 8px !important;

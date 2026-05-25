@@ -247,19 +247,45 @@
    ================================ */
 @media (max-width: 768px) {
   .chat-window {
-    padding: 12px;
+    padding: 10px 8px;
     gap: 10px;
   }
   .message-bubble {
-    max-width: 95%;
-    font-size: 0.9rem;
+    max-width: 92%;
+    font-size: 0.88rem;
     padding: 10px 14px;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
   }
   .ai-bubble {
     max-width: 98%;
   }
   .ai-bubble .code-explanation {
-    padding: 12px 14px;
-    font-size: 0.92rem;
+    padding: 10px 12px;
+    font-size: 0.88rem;
+    line-height: 1.65;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+  }
+  .ai-bubble .code-explanation pre {
+    padding: 10px;
+    font-size: 0.78rem;
+    overflow-x: auto;
+    white-space: pre-wrap;
+    word-break: break-word;
+  }
+  .ai-bubble .code-explanation code {
+    font-size: 0.8rem;
+    word-break: break-word;
+  }
+  .ai-bubble .code-explanation h1,
+  .ai-bubble .code-explanation h2,
+  .ai-bubble .code-explanation h3 {
+    font-size: 1.05rem;
+    margin: 0.5em 0 0.3em;
+  }
+  .ai-bubble .code-explanation ul,
+  .ai-bubble .code-explanation ol {
+    padding-left: 1.2em;
   }
 }

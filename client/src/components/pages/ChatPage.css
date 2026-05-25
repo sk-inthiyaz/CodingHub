@@ -316,22 +316,94 @@
 
 @media (max-width: 768px) {
   .chatpage-main {
-    padding: 0 8px 8px;
+    padding: 0 6px 6px;
   }
-  .chat-wrapper-fixed,
-  .input-box-fixed {
+
+  .heading-container {
+    margin-top: 4px;
+    padding: 4px 0;
+  }
+
+  .chatpage-title-fixed {
+    font-size: 14px !important;
+    padding: 6px 14px !important;
+  }
+
+  .chat-wrapper-fixed {
     width: 100%;
     border-radius: 12px 12px 0 0;
+    margin: 4px 0 0;
   }
-  .input-box-fixed {
-    border-radius: 0 0 12px 12px;
-    padding: 12px 14px 16px;
-  }
+
   .chat-box-fixed {
-    padding: 16px;
+    padding: 14px 10px;
   }
-  .controls-column {
+
+  /* INPUT AREA — stack vertically on mobile */
+  .input-box-fixed {
     width: 100%;
-    flex-direction: row;
+    max-width: 100%;
+    border-radius: 0 0 12px 12px;
+    padding: 10px 10px 14px;
+  }
+
+  /* Stack textarea and controls vertically */
+  .input-row {
+    flex-direction: column !important;
+    gap: 8px !important;
+    align-items: stretch !important;
+  }
+
+  /* TEXTAREA — full width, proper height */
+  .chatpage-textarea {
+    width: 100% !important;
+    min-width: 100% !important;
+    max-width: 100% !important;
+    min-height: 60px !important;
+    max-height: 100px !important;
+    font-size: 0.9rem !important;
+    padding: 10px 14px !important;
+    font-family: 'Inter', sans-serif !important;
+    line-height: 1.5 !important;
+    word-wrap: break-word !important;
+    overflow-wrap: break-word !important;
+    box-sizing: border-box !important;
+  }
+
+  /* Controls row — side by side on mobile (mode + send) */
+  .controls-column {
+    width: 100% !important;
+    flex-direction: row !important;
+    gap: 8px !important;
+    flex-shrink: 0;
+  }
+
+  .mode-select {
+    flex: 1 !important;
+    font-size: 12px !important;
+    padding: 8px 10px !important;
+    min-width: 0 !important;
+  }
+
+  .sendbtn-fixed {
+    flex: 1.5 !important;
+    height: 38px !important;
+    font-size: 13px !important;
+    letter-spacing: 0.3px !important;
+  }
+
+  /* Radio mode container */
+  .radio-mode-container {
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .radio-options {
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+
+  .radio-options label {
+    font-size: 0.8rem;
   }
 }
