@@ -1,0 +1,483 @@
+/* ============================================
+   GLOBAL MOBILE RESPONSIVE OVERRIDES
+   CodingHub - All pages mobile friendly
+   ============================================ */
+
+/* ---- BASE MOBILE ---- */
+@media (max-width: 768px) {
+
+  /* Global */
+  body { overflow-x: hidden; }
+  main { padding-top: 48px; }
+
+  /* ---- NAVBAR ---- */
+  .navbar-root, .navbar-inner {
+    height: 48px !important;
+    padding: 0 12px !important;
+  }
+  .navbar-title { font-size: 1rem !important; }
+  .navbar-welcome { display: none !important; }
+  .navbar-link, .navbar-logout-btn, .navbar-signup-btn {
+    font-size: 0.8rem !important;
+    padding: 4px 8px !important;
+  }
+  .navbar-darkmode-btn {
+    min-width: 34px !important;
+    height: 30px !important;
+    font-size: 0.95rem !important;
+    padding: 3px 8px !important;
+  }
+
+  /* ---- LOGIN / SIGNUP ---- */
+  .login-page, .signup-page {
+    padding: 12px !important;
+    min-height: 100vh;
+  }
+  .login-container, .signup-container {
+    max-width: 100% !important;
+    border-radius: 16px !important;
+    flex-direction: column !important;
+  }
+  .login-branding, .signup-branding {
+    display: none !important;
+  }
+  .login-form-section, .signup-form-section {
+    padding: 28px 20px !important;
+  }
+  .login-title, .signup-title {
+    font-size: 1.4rem !important;
+  }
+  .form-input {
+    padding: 12px 14px 12px 42px !important;
+    font-size: 0.9rem !important;
+  }
+
+  /* ---- HOME PAGE ---- */
+  .ph-main {
+    padding: 16px 14px 32px !important;
+  }
+  .ph-hero {
+    grid-template-columns: 1fr !important;
+    gap: 24px !important;
+    min-height: auto !important;
+    text-align: center;
+  }
+  .ph-hero-title {
+    font-size: 1.8rem !important;
+    line-height: 1.2 !important;
+  }
+  .ph-hero-subtitle {
+    font-size: 0.95rem !important;
+  }
+  .ph-hero-actions {
+    flex-direction: column !important;
+    align-items: center !important;
+    gap: 10px !important;
+  }
+  .ph-hero-stats {
+    flex-wrap: wrap !important;
+    justify-content: center !important;
+    gap: 10px !important;
+  }
+  .ph-terminal {
+    display: none !important;
+  }
+  .ph-features-grid {
+    grid-template-columns: 1fr !important;
+    gap: 14px !important;
+  }
+  .ph-section-title {
+    font-size: 1.5rem !important;
+  }
+  .ph-steps {
+    flex-direction: column !important;
+    gap: 14px !important;
+  }
+  .ph-step-connector {
+    width: 2px !important;
+    height: 30px !important;
+    margin: 0 auto !important;
+  }
+  .ph-cta {
+    padding: 32px 16px !important;
+  }
+  .ph-cta-actions {
+    flex-direction: column !important;
+    align-items: center !important;
+  }
+
+  /* ---- CHAT PAGE ---- */
+  .chatpage-root { overflow: hidden; }
+  .heading-container { padding: 4px 0 !important; margin-top: 4px !important; }
+  .chatpage-title-fixed {
+    font-size: 15px !important;
+    padding: 6px 16px !important;
+  }
+  .chatpage-main {
+    padding: 0 6px 6px !important;
+  }
+  .chat-wrapper-fixed,
+  .input-box-fixed {
+    width: 100% !important;
+    max-width: 100% !important;
+  }
+  .chat-wrapper-fixed {
+    border-radius: 12px 12px 0 0 !important;
+    margin: 4px 0 0 !important;
+  }
+  .input-box-fixed {
+    border-radius: 0 0 12px 12px !important;
+    padding: 10px 12px 14px !important;
+  }
+  .chat-box-fixed {
+    padding: 12px !important;
+  }
+  .chatpage-textarea {
+    min-height: 60px !important;
+    max-height: 100px !important;
+    font-size: 0.88rem !important;
+    padding: 10px 14px !important;
+  }
+  .controls-column {
+    width: 100% !important;
+    flex-direction: row !important;
+    gap: 8px !important;
+  }
+  .mode-select {
+    flex: 1 !important;
+    font-size: 12px !important;
+    padding: 8px !important;
+  }
+  .sendbtn-fixed {
+    height: 38px !important;
+    font-size: 13px !important;
+  }
+  .radio-mode-container {
+    flex-direction: column !important;
+    gap: 8px !important;
+  }
+  .radio-options {
+    gap: 8px !important;
+    flex-wrap: wrap !important;
+  }
+  .radio-options label {
+    font-size: 0.8rem !important;
+  }
+
+  /* ---- CHAT WINDOW MESSAGES ---- */
+  .chat-window {
+    padding: 10px !important;
+    gap: 10px !important;
+  }
+  .message-bubble {
+    max-width: 95% !important;
+    font-size: 0.88rem !important;
+    padding: 10px 14px !important;
+  }
+  .ai-bubble {
+    max-width: 98% !important;
+  }
+  .ai-bubble .code-explanation {
+    padding: 12px 14px !important;
+    font-size: 0.9rem !important;
+    line-height: 1.65 !important;
+  }
+  .ai-bubble .code-explanation pre {
+    padding: 10px !important;
+    font-size: 0.8rem !important;
+    overflow-x: auto !important;
+  }
+
+  /* ---- SIDEBAR ---- */
+  .sidebar-hamburger {
+    top: 54px !important;
+    left: 8px !important;
+    padding: 7px 9px !important;
+  }
+  .sidebar-root {
+    width: 85vw !important;
+    max-width: 300px !important;
+  }
+
+  /* ---- LEARNHUB ---- */
+  .learnhub-container {
+    padding: 20px 12px !important;
+  }
+  .learnhub-title {
+    font-size: 1.5rem !important;
+  }
+  .card-grid {
+    grid-template-columns: 1fr !important;
+    gap: 14px !important;
+  }
+  .learnhub-card {
+    padding: 20px 18px !important;
+  }
+
+  /* ---- LEARN HUB START LEARNING ---- */
+  .sl-container {
+    padding: 16px 12px !important;
+  }
+  .sl-cards-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  /* ---- WATCH TUTORIALS ---- */
+  .tutorial-grid {
+    grid-template-columns: 1fr 1fr !important;
+    gap: 10px !important;
+  }
+  .tutorial-video-card {
+    min-width: 0 !important;
+  }
+  .tutorial-video-card iframe {
+    height: 140px !important;
+  }
+
+  /* ---- PRACTICE PROBLEMS LIST ---- */
+  .practice-container {
+    padding: 16px 12px !important;
+  }
+  .problems-header {
+    flex-direction: column !important;
+    gap: 12px !important;
+  }
+  .problems-filters {
+    flex-direction: column !important;
+    gap: 8px !important;
+  }
+  .problems-table {
+    font-size: 0.85rem !important;
+  }
+  .problems-table th,
+  .problems-table td {
+    padding: 10px 8px !important;
+  }
+  /* Hide acceptance column on mobile */
+  .problems-table th:nth-child(4),
+  .problems-table td:nth-child(4) {
+    display: none !important;
+  }
+
+  /* ---- PROBLEM DETAIL (CODE EDITOR) ---- */
+  .problem-detail-container {
+    grid-template-columns: 1fr !important;
+    height: auto !important;
+    min-height: 100vh;
+    gap: 0 !important;
+    padding: 8px !important;
+  }
+  .problem-description-panel {
+    max-height: 40vh !important;
+    overflow-y: auto !important;
+    padding: 14px !important;
+    border-radius: 12px !important;
+  }
+  .problem-title-header h1 {
+    font-size: 1.2rem !important;
+  }
+  .problem-meta {
+    flex-wrap: wrap !important;
+    gap: 8px !important;
+  }
+  .code-editor-panel {
+    min-height: 50vh !important;
+  }
+  .code-header {
+    padding: 8px 10px !important;
+  }
+  .btn-run-header,
+  .btn-submit-header {
+    width: 100px !important;
+    height: 34px !important;
+    font-size: 0.8rem !important;
+    padding: 0.4rem 0.75rem !important;
+  }
+  .monaco-editor-container {
+    height: 280px !important;
+    min-height: 250px !important;
+  }
+  .test-cases-container {
+    max-height: 200px !important;
+    overflow-y: auto !important;
+  }
+  .editor-toolbar {
+    flex-wrap: wrap !important;
+    gap: 6px !important;
+  }
+  .language-dropdown {
+    font-size: 0.85rem !important;
+  }
+
+  /* ---- DISCUSSIONS ---- */
+  .discussion-page-wrapper {
+    flex-direction: column !important;
+    padding: 12px !important;
+    gap: 16px !important;
+  }
+  .trending-sidebar {
+    width: 100% !important;
+    position: static !important;
+    order: -1 !important;
+  }
+  .trending-list {
+    display: grid !important;
+    grid-template-columns: 1fr 1fr !important;
+    gap: 8px !important;
+  }
+  .discussion-item {
+    padding: 12px 0 !important;
+  }
+  .discussion-title {
+    font-size: 1rem !important;
+  }
+  .discussion-footer {
+    flex-wrap: wrap !important;
+    font-size: 0.8rem !important;
+  }
+  .filter-row {
+    flex-direction: column !important;
+    gap: 8px !important;
+  }
+
+  /* ---- DISCUSSION DETAIL ---- */
+  .discussion-detail-container {
+    padding: 12px !important;
+  }
+
+  /* ---- PROFILE PAGE ---- */
+  .profile-page {
+    padding: 12px !important;
+  }
+  .profile-layout {
+    grid-template-columns: 1fr !important;
+  }
+  .profile-column {
+    order: -1 !important;
+  }
+  .profile-header h1 {
+    font-size: 1.5rem !important;
+  }
+  .avatar-ring {
+    width: 110px !important;
+    height: 110px !important;
+  }
+  .stats-grid-two {
+    grid-template-columns: 1fr !important;
+  }
+  .heatmap-grid {
+    overflow-x: auto !important;
+  }
+  .heatmap-cell {
+    width: 12px !important;
+    height: 12px !important;
+  }
+  .btn-back {
+    padding: 8px 14px !important;
+    font-size: 14px !important;
+  }
+
+  /* ---- SETTINGS PAGE ---- */
+  .settings-page {
+    padding: 16px 12px !important;
+  }
+
+  /* ---- PROGRESS TRACKER ---- */
+  .progress-page {
+    padding: 12px !important;
+  }
+  .stats-overview {
+    grid-template-columns: 1fr 1fr !important;
+    gap: 12px !important;
+  }
+  .overview-card {
+    padding: 16px !important;
+  }
+  .overview-card .big-number {
+    font-size: 1.8rem !important;
+  }
+  .practice-overview {
+    grid-template-columns: 1fr !important;
+    gap: 20px !important;
+  }
+  .learning-overview {
+    grid-template-columns: 1fr !important;
+    gap: 20px !important;
+  }
+
+  /* ---- STREAK PAGES ---- */
+  .streak-page-container {
+    padding: 12px !important;
+  }
+  .streak-header {
+    flex-direction: column !important;
+    gap: 12px !important;
+  }
+  .leaderboard-container {
+    padding: 12px !important;
+  }
+
+  /* ---- ASK AI DOUBTS ---- */
+  .ask-ai-container {
+    padding: 16px 12px !important;
+  }
+
+  /* ---- ABOUT PAGE ---- */
+  .about-container {
+    padding: 16px 12px !important;
+  }
+  .about-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  /* ---- ADMIN PAGES ---- */
+  .admin-dashboard {
+    padding: 12px !important;
+  }
+  .admin-stats-grid {
+    grid-template-columns: 1fr 1fr !important;
+  }
+
+  /* ---- CODE EDITOR PRACTICE (standalone) ---- */
+  .editor-practice-container {
+    padding: 12px !important;
+  }
+  .editor-practice-main {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+/* ---- SMALL PHONES (< 480px) ---- */
+@media (max-width: 480px) {
+
+  .navbar-title { font-size: 0.9rem !important; }
+
+  .ph-hero-title { font-size: 1.5rem !important; }
+  .ph-hero-subtitle { font-size: 0.85rem !important; }
+
+  .chatpage-title-fixed { font-size: 13px !important; padding: 5px 14px !important; }
+
+  .tutorial-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  .trending-list {
+    grid-template-columns: 1fr !important;
+  }
+
+  .stats-overview {
+    grid-template-columns: 1fr !important;
+  }
+
+  .admin-stats-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  .monaco-editor-container {
+    height: 240px !important;
+  }
+
+  .problem-description-panel {
+    max-height: 35vh !important;
+  }
+}

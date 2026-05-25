@@ -2,6 +2,7 @@ import React from 'react';
 import ReactDOM from 'react-dom/client';
 import './index.css';
 import './styles/theme.css';
+import './styles/mobile-responsive.css';
 import App from './App';
 
 window.API_BASE_URL = process.env.REACT_APP_API_URL || (
