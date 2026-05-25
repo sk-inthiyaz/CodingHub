@@ -5,11 +5,7 @@ import './styles/theme.css';
 import './styles/mobile-responsive.css';
 import App from './App';
 
-window.API_BASE_URL = process.env.REACT_APP_API_URL || (
-  window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
-    ? 'http://localhost:5000'
-    : 'http://13.54.179.15:5000'
-);
+window.API_BASE_URL = process.env.REACT_APP_API_URL || 'http://13.54.179.15:5000';
 
 // Suppress ResizeObserver error from Monaco Editor
 const resizeObserverErr = window.console.error;
