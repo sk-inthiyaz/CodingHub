@@ -436,12 +436,36 @@
   transition: background 0.2s, box-shadow 0.2s, color 0.2s;
   display: flex;
   align-items: center;
+  justify-content: center;
   gap: 0.5rem;
   font-size: 0.9rem;
-  box-sizing: border-box;    /* lock dimensions */
-  min-width: max-content;    /* never shrink below text */
-  outline: none;             /* remove focus ring that causes reflow */
-  -webkit-appearance: none;  /* reset browser button style */
+  box-sizing: border-box;
+  width: 130px;
+  height: 38px;
+  flex-shrink: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  outline: none;
+  -webkit-appearance: none;
+}
+
+/* Scoped spinner for header Run/Submit buttons — prevents global .loading-spinner (60px) from inflating buttons */
+.btn-header-spinner {
+  display: inline-block !important;
+  width: 14px !important;
+  height: 14px !important;
+  min-width: 14px;
+  min-height: 14px;
+  max-width: 14px;
+  max-height: 14px;
+  border: 2px solid rgba(255, 255, 255, 0.3) !important;
+  border-radius: 50% !important;
+  border-top-color: white !important;
+  animation: spin 0.6s linear infinite !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  flex-shrink: 0;
+  flex-direction: unset !important;
 }
 
 .btn-run-header {

@@ -456,7 +456,7 @@ const ProblemDetail = () => {
             >
               {running ? (
                 <>
-                  <span className="loading-spinner"></span> Running...
+                  <span className="btn-header-spinner"></span> Running...
                 </>
               ) : (
                 <>▶ Run</>
@@ -469,7 +469,7 @@ const ProblemDetail = () => {
             >
               {submitting ? (
                 <>
-                  <span className="loading-spinner"></span> Submitting...
+                  <span className="btn-header-spinner"></span> Submitting...
                 </>
               ) : (
                 <>Submit</>
